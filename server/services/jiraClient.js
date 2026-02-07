@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const JIRA_DOMAIN = process.env.JIRA_DOMAIN; // e.g., 'your-domain.atlassian.net'
+const JIRA_DOMAIN = process.env.JIRA_DOMAIN || (process.env.JIRA_BASE_URL ? process.env.JIRA_BASE_URL.replace('https://', '').replace(/\/$/, '') : '');
 const JIRA_EMAIL = process.env.JIRA_EMAIL;
 const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
 
@@ -12,20 +12,37 @@ const auth = {
 // Base URL for Jira Cloud API v3
 const baseURL = `https://${JIRA_DOMAIN}/rest/api/3`;
 
+// function searchIssues(jql, startAt = 0, maxResults = 50) {
+//     try {
+//         const res = await axios.get(`${baseURL}/search`, { ... });
+//         return res.data;
+//     } ...
+// }
+
+// NEW IMPLEMENTATION for /rest/api/3/search/jql
 async function searchIssues(jql, startAt = 0, maxResults = 50) {
     try {
-        const res = await axios.get(`${baseURL}/search`, {
-            auth,
-            params: {
-                jql,
-                startAt,
-                maxResults,
-                fields: 'key,summary,status,assignee,created,updated,priority,customfield_10020' // customfield_10020 is often sprint
-            },
-        });
-        return res.data;
+        // We use the derived JIRA_DOMAIN or parse it from baseURL if needed
+        // Note: baseURL handles the domain part.
+        // Endpoint is /search/jql
+        // Response format: { issues: [], isLast: boolean, ... } - NO total
+        const res = await axios.post(`${baseURL}/search/jql`, {
+            jql,
+            startAt,
+            maxResults,
+            fields: ['key', 'summary', 'status', 'assignee', 'created', 'updated', 'priority', 'customfield_10020']
+        }, { auth });
+
+        return {
+            issues: res.data.issues || [],
+            isLast: res.data.isLast,
+            total: res.data.total || 0 // Might be missing, handle in ingestion
+        };
     } catch (err) {
         console.error('Jira search error:', err.message);
+        if (err.response) {
+            console.error('Jira API Response:', err.response.data);
+        }
         throw err;
     }
 }

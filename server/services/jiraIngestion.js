@@ -76,7 +76,14 @@ async function ingestIssues(projectKey) {
             }
 
             startAt += issues.length;
-            if (startAt >= result.total) hasMore = false;
+            // Use isLast if available, otherwise fallback to standard check if total exists (or issue length check)
+            if (result.isLast !== undefined) {
+                if (result.isLast) hasMore = false;
+            } else if (result.total && startAt >= result.total) {
+                hasMore = false;
+            } else if (issues.length === 0) {
+                hasMore = false;
+            }
 
         } catch (e) {
             console.error('Ingestion Loop Failed:', e.message);
