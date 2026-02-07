@@ -1,0 +1,210 @@
+{
+  "product_manager": {
+    "id": "PM001",
+    "name": "Sarah Chen",
+    "role": "Product Manager",
+    "years_of_experience": 12,
+    "skills": ["Product Strategy", "Roadmap Planning", "Cross-team Coordination", "Agile", "Stakeholder Management"],
+    "working_style": "Strategic, Visionary, Collaborative"
+  },
+  "teams": {
+    "tech": {
+      "team_name": "Tech Team",
+      "description": "Handles all technical development, architecture, and infrastructure tasks",
+      "members": [
+        {
+          "id": "TECH001",
+          "name": "Alice Johnson",
+          "role": "Senior Frontend Developer",
+          "team": "tech",
+          "years_of_experience": 5,
+          "skills": ["React", "TypeScript", "Node.js", "CSS", "Performance Optimization"],
+          "expertise": {
+            "Frontend Development": 0.95,
+            "UI/UX Implementation": 0.90,
+            "API Integration": 0.80
+          },
+          "working_style": "Agile, Collaborative",
+          "availability": "Partially Free",
+          "free_slots_per_week": 8,
+          "past_performance_score": 0.92,
+          "domain_knowledge": ["E-commerce", "SaaS Dashboards"]
+        },
+        {
+          "id": "TECH002",
+          "name": "Bob Smith",
+          "role": "Backend Engineer",
+          "team": "tech",
+          "years_of_experience": 8,
+          "skills": ["Python", "Neo4j", "AWS", "Docker", "Microservices"],
+          "expertise": {
+            "Backend Architecture": 0.98,
+            "Database Design": 0.93,
+            "Cloud Infrastructure": 0.88
+          },
+          "working_style": "Detail-oriented, Independent",
+          "availability": "Partially Free",
+          "free_slots_per_week": 10,
+          "past_performance_score": 0.95,
+          "domain_knowledge": ["FinTech", "Data Pipelines"]
+        },
+        {
+          "id": "TECH003",
+          "name": "Charlie Davis",
+          "role": "Full Stack Developer",
+          "team": "tech",
+          "years_of_experience": 3,
+          "skills": ["JavaScript", "Express", "PostgreSQL", "React", "GraphQL"],
+          "expertise": {
+            "Full Stack Development": 0.82,
+            "API Design": 0.88,
+            "Testing": 0.75
+          },
+          "working_style": "Fast-paced, Adaptive",
+          "availability": "Free",
+          "free_slots_per_week": 20,
+          "past_performance_score": 0.80,
+          "domain_knowledge": ["Healthcare", "EdTech"]
+        },
+        {
+          "id": "TECH004",
+          "name": "Diana Prince",
+          "role": "DevOps Lead",
+          "team": "tech",
+          "years_of_experience": 10,
+          "skills": ["Kubernetes", "Docker", "CI/CD", "Terraform", "AWS"],
+          "expertise": {
+            "DevOps": 0.97,
+            "Cloud Infrastructure": 0.95,
+            "Monitoring & Logging": 0.90
+          },
+          "working_style": "Strategic, Leadership",
+          "availability": "Busy",
+          "free_slots_per_week": 5,
+          "past_performance_score": 0.96,
+          "domain_knowledge": ["Enterprise", "SaaS"]
+        }
+      ]
+    },
+    "marketing": {
+      "team_name": "Marketing Team",
+      "description": "Handles product marketing, campaigns, analytics, and growth strategies",
+      "members": [
+        {
+          "id": "MKT001",
+          "name": "Elena Rodriguez",
+          "role": "Marketing Lead",
+          "team": "marketing",
+          "years_of_experience": 7,
+          "skills": ["Campaign Strategy", "SEO/SEM", "Analytics", "Brand Management", "Content Strategy"],
+          "expertise": {
+            "Campaign Management": 0.94,
+            "Market Research": 0.88,
+            "Growth Strategy": 0.91
+          },
+          "working_style": "Data-driven, Creative",
+          "availability": "Partially Free",
+          "free_slots_per_week": 12,
+          "past_performance_score": 0.93,
+          "domain_knowledge": ["B2B SaaS", "Product Launch"]
+        },
+        {
+          "id": "MKT002",
+          "name": "Frank Morrison",
+          "role": "Digital Marketing Specialist",
+          "team": "marketing",
+          "years_of_experience": 4,
+          "skills": ["Google Ads", "Social Media", "Email Marketing", "A/B Testing", "Copywriting"],
+          "expertise": {
+            "Paid Advertising": 0.90,
+            "Social Media Marketing": 0.85,
+            "Email Campaigns": 0.82
+          },
+          "working_style": "Experimental, Fast-learner",
+          "availability": "Free",
+          "free_slots_per_week": 18,
+          "past_performance_score": 0.84,
+          "domain_knowledge": ["Consumer Apps", "Growth Hacking"]
+        },
+        {
+          "id": "MKT003",
+          "name": "Grace Kim",
+          "role": "Analytics & Insights Manager",
+          "team": "marketing",
+          "years_of_experience": 6,
+          "skills": ["Google Analytics", "Tableau", "SQL", "Market Research", "Competitive Analysis"],
+          "expertise": {
+            "Data Analytics": 0.96,
+            "Market Research": 0.90,
+            "Reporting": 0.88
+          },
+          "working_style": "Analytical, Methodical",
+          "availability": "Partially Free",
+          "free_slots_per_week": 10,
+          "past_performance_score": 0.91,
+          "domain_knowledge": ["SaaS Metrics", "Product Analytics"]
+        }
+      ]
+    },
+    "editing": {
+      "team_name": "Editing Team",
+      "description": "Handles content creation, editing, documentation, and communication materials",
+      "members": [
+        {
+          "id": "EDT001",
+          "name": "Henry Wallace",
+          "role": "Senior Content Editor",
+          "team": "editing",
+          "years_of_experience": 9,
+          "skills": ["Technical Writing", "Content Editing", "Style Guides", "Proofreading", "Documentation"],
+          "expertise": {
+            "Technical Documentation": 0.97,
+            "Content Strategy": 0.85,
+            "UX Writing": 0.80
+          },
+          "working_style": "Meticulous, Consistent",
+          "availability": "Partially Free",
+          "free_slots_per_week": 14,
+          "past_performance_score": 0.94,
+          "domain_knowledge": ["Developer Docs", "API Documentation"]
+        },
+        {
+          "id": "EDT002",
+          "name": "Ivy Zhang",
+          "role": "Content Writer",
+          "team": "editing",
+          "years_of_experience": 3,
+          "skills": ["Blog Writing", "Social Media Content", "SEO Writing", "Creative Writing", "Research"],
+          "expertise": {
+            "Blog & Article Writing": 0.88,
+            "SEO Content": 0.84,
+            "Social Media Copy": 0.90
+          },
+          "working_style": "Creative, Prolific",
+          "availability": "Free",
+          "free_slots_per_week": 20,
+          "past_performance_score": 0.82,
+          "domain_knowledge": ["Tech Blogs", "Consumer Content"]
+        },
+        {
+          "id": "EDT003",
+          "name": "Jack Thompson",
+          "role": "UX Writer & Editor",
+          "team": "editing",
+          "years_of_experience": 5,
+          "skills": ["UX Writing", "Microcopy", "User Research", "A/B Testing Copy", "Accessibility Writing"],
+          "expertise": {
+            "UX Writing": 0.93,
+            "Product Copy": 0.90,
+            "Accessibility": 0.87
+          },
+          "working_style": "User-centric, Iterative",
+          "availability": "Partially Free",
+          "free_slots_per_week": 10,
+          "past_performance_score": 0.89,
+          "domain_knowledge": ["Product Interfaces", "Mobile Apps"]
+        }
+      ]
+    }
+  }
+}

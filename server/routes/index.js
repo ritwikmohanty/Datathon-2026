@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-// Import route files here
-// const userRoutes = require('./users');
+// Import route files
+const taskRoutes = require('./tasks');
+const transcriptRoutes = require('./transcript');
 
 // Use routes
-// router.use('/users', userRoutes);
+router.use('/tasks', taskRoutes);
+router.use('/transcript', transcriptRoutes);
 
 router.get('/health', (req, res) => {
   res.json({ status: 'Server is healthy' });
