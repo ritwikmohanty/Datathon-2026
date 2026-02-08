@@ -545,7 +545,7 @@ export const getAllocationFromLLM = async (
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'meta-llama/Llama-3.3-70B-Instruct',
+        model: 'meta-llama/Meta-Llama-3.1-8B-Instruct',
         messages: [
           {
             role: 'system',

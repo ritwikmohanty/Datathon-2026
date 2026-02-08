@@ -18,7 +18,7 @@ class FeatherlessService {
     let payload;
     try {
       payload = {
-        model: "meta-llama/Llama-3.3-70B-Instruct",
+        model: "meta-llama/Meta-Llama-3.1-8B-Instruct",
         messages: messages,
         temperature: options.temperature || 0.7,
         max_tokens: options.max_tokens || 1000,
@@ -37,7 +37,7 @@ class FeatherlessService {
       console.error('Featherless API Error:', error.response?.data || error.message);
       
       // If Llama 3.3 70B fails, try falling back to Mistral
-      if (payload.model === "meta-llama/Llama-3.3-70B-Instruct") {
+      if (payload.model === "meta-llama/Meta-Llama-3.1-8B-Instruct") {
           console.log("Falling back to Mistral-7B...");
           try {
              const fallbackPayload = { ...payload, model: "mistralai/Mistral-7B-Instruct-v0.1" };
