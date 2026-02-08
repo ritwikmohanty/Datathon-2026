@@ -224,6 +224,218 @@ function detectTaskType(taskDescription) {
 }
 
 /**
+ * Dynamically generate task breakdown based on task description keywords
+ * This creates unique tasks based on what the task actually asks for
+ */
+function generateDynamicTaskBreakdown(taskDescription) {
+  const desc = taskDescription.toLowerCase();
+  const tasks = { tech: [], marketing: [], editing: [] };
+  
+  // Extract key concepts from the task
+  const concepts = {
+    // Tech concepts
+    frontend: desc.includes('frontend') || desc.includes('ui') || desc.includes('interface') || desc.includes('react') || desc.includes('page') || desc.includes('dashboard'),
+    backend: desc.includes('backend') || desc.includes('api') || desc.includes('server') || desc.includes('database') || desc.includes('auth'),
+    mobile: desc.includes('mobile') || desc.includes('app') || desc.includes('ios') || desc.includes('android'),
+    devops: desc.includes('deploy') || desc.includes('ci/cd') || desc.includes('docker') || desc.includes('kubernetes') || desc.includes('infrastructure'),
+    testing: desc.includes('test') || desc.includes('qa') || desc.includes('quality'),
+    security: desc.includes('security') || desc.includes('auth') || desc.includes('login') || desc.includes('permission'),
+    performance: desc.includes('performance') || desc.includes('optimize') || desc.includes('speed') || desc.includes('fast'),
+    
+    // Marketing concepts
+    campaign: desc.includes('campaign') || desc.includes('launch') || desc.includes('promote'),
+    social: desc.includes('social') || desc.includes('twitter') || desc.includes('linkedin') || desc.includes('facebook'),
+    seo: desc.includes('seo') || desc.includes('search') || desc.includes('ranking'),
+    analytics: desc.includes('analytics') || desc.includes('metrics') || desc.includes('tracking') || desc.includes('measure'),
+    email: desc.includes('email') || desc.includes('newsletter') || desc.includes('notification'),
+    
+    // Content concepts
+    documentation: desc.includes('document') || desc.includes('docs') || desc.includes('guide') || desc.includes('manual'),
+    blog: desc.includes('blog') || desc.includes('article') || desc.includes('post') || desc.includes('content'),
+    copy: desc.includes('copy') || desc.includes('text') || desc.includes('writing') || desc.includes('ux'),
+  };
+
+  // Generate tech tasks based on detected concepts
+  if (concepts.frontend) {
+    tasks.tech.push({
+      title: `Build ${extractKeyword(taskDescription, ['dashboard', 'page', 'interface', 'ui', 'component'])} Frontend`,
+      required_skills: ['React', 'TypeScript', 'CSS', 'Frontend Development'],
+      complexity: 'high',
+      estimated_hours: 16 + Math.floor(Math.random() * 8),
+      reasoning: `Frontend development needed for: ${taskDescription.substring(0, 50)}...`
+    });
+  }
+  
+  if (concepts.backend) {
+    tasks.tech.push({
+      title: `Develop ${extractKeyword(taskDescription, ['api', 'service', 'backend', 'server'])} Backend Services`,
+      required_skills: ['Node.js', 'Express', 'MongoDB', 'Backend Architecture'],
+      complexity: 'high',
+      estimated_hours: 20 + Math.floor(Math.random() * 10),
+      reasoning: `Backend/API work required for the task`
+    });
+  }
+  
+  if (concepts.security) {
+    tasks.tech.push({
+      title: 'Implement Security & Authentication',
+      required_skills: ['Security', 'Authentication', 'Node.js', 'Backend Architecture'],
+      complexity: 'high',
+      estimated_hours: 12 + Math.floor(Math.random() * 6),
+      reasoning: `Security implementation detected in task requirements`
+    });
+  }
+  
+  if (concepts.devops) {
+    tasks.tech.push({
+      title: 'Setup Deployment & Infrastructure',
+      required_skills: ['Docker', 'CI/CD', 'AWS', 'DevOps'],
+      complexity: 'medium',
+      estimated_hours: 8 + Math.floor(Math.random() * 8),
+      reasoning: `DevOps/deployment work needed`
+    });
+  }
+  
+  if (concepts.testing) {
+    tasks.tech.push({
+      title: 'Quality Assurance & Testing',
+      required_skills: ['Testing', 'QA', 'Jest', 'Cypress'],
+      complexity: 'medium',
+      estimated_hours: 10 + Math.floor(Math.random() * 6),
+      reasoning: `Testing requirements identified`
+    });
+  }
+  
+  if (concepts.performance) {
+    tasks.tech.push({
+      title: 'Performance Optimization',
+      required_skills: ['Performance Optimization', 'Monitoring', 'Profiling'],
+      complexity: 'medium',
+      estimated_hours: 8 + Math.floor(Math.random() * 4),
+      reasoning: `Performance optimization requested`
+    });
+  }
+
+  // Generate marketing tasks
+  if (concepts.campaign) {
+    tasks.marketing.push({
+      title: `Create ${extractKeyword(taskDescription, ['launch', 'product', 'feature'])} Marketing Campaign`,
+      required_skills: ['Campaign Strategy', 'Marketing', 'Brand Management'],
+      complexity: 'high',
+      estimated_hours: 14 + Math.floor(Math.random() * 6),
+      reasoning: `Marketing campaign needed for launch/promotion`
+    });
+  }
+  
+  if (concepts.social) {
+    tasks.marketing.push({
+      title: 'Social Media Strategy & Content',
+      required_skills: ['Social Media', 'Content Strategy', 'Copywriting'],
+      complexity: 'medium',
+      estimated_hours: 10 + Math.floor(Math.random() * 5),
+      reasoning: `Social media presence required`
+    });
+  }
+  
+  if (concepts.analytics) {
+    tasks.marketing.push({
+      title: 'Setup Analytics & Tracking',
+      required_skills: ['Google Analytics', 'Data Analytics', 'Reporting'],
+      complexity: 'medium',
+      estimated_hours: 8 + Math.floor(Math.random() * 4),
+      reasoning: `Analytics and metrics tracking needed`
+    });
+  }
+  
+  if (concepts.email) {
+    tasks.marketing.push({
+      title: 'Email Marketing & Notifications',
+      required_skills: ['Email Marketing', 'Copywriting', 'Campaign Management'],
+      complexity: 'medium',
+      estimated_hours: 8 + Math.floor(Math.random() * 4),
+      reasoning: `Email communication strategy needed`
+    });
+  }
+
+  // Generate editing/content tasks
+  if (concepts.documentation) {
+    tasks.editing.push({
+      title: `Write ${extractKeyword(taskDescription, ['user', 'technical', 'api', 'product'])} Documentation`,
+      required_skills: ['Technical Writing', 'Documentation', 'Content Strategy'],
+      complexity: 'high',
+      estimated_hours: 12 + Math.floor(Math.random() * 8),
+      reasoning: `Documentation required for the project`
+    });
+  }
+  
+  if (concepts.blog) {
+    tasks.editing.push({
+      title: 'Create Blog Posts & Articles',
+      required_skills: ['Blog Writing', 'SEO Writing', 'Content Creation'],
+      complexity: 'medium',
+      estimated_hours: 8 + Math.floor(Math.random() * 6),
+      reasoning: `Blog/article content needed`
+    });
+  }
+  
+  if (concepts.copy) {
+    tasks.editing.push({
+      title: 'Write UX Copy & Microcopy',
+      required_skills: ['UX Writing', 'Copywriting', 'Microcopy'],
+      complexity: 'medium',
+      estimated_hours: 6 + Math.floor(Math.random() * 4),
+      reasoning: `UX copy and interface text needed`
+    });
+  }
+
+  // If no specific tasks were generated, create general ones based on the task
+  if (tasks.tech.length === 0) {
+    tasks.tech.push({
+      title: `Technical Implementation: ${taskDescription.substring(0, 40)}`,
+      required_skills: ['Full Stack Development', 'React', 'Node.js'],
+      complexity: 'medium',
+      estimated_hours: 16,
+      reasoning: `General technical work for the task`
+    });
+  }
+  
+  if (tasks.marketing.length === 0) {
+    tasks.marketing.push({
+      title: `Marketing Support: ${taskDescription.substring(0, 40)}`,
+      required_skills: ['Marketing Strategy', 'Campaign Management'],
+      complexity: 'medium',
+      estimated_hours: 10,
+      reasoning: `Marketing support for the initiative`
+    });
+  }
+  
+  if (tasks.editing.length === 0) {
+    tasks.editing.push({
+      title: `Content & Documentation: ${taskDescription.substring(0, 40)}`,
+      required_skills: ['Content Writing', 'Documentation'],
+      complexity: 'medium',
+      estimated_hours: 8,
+      reasoning: `Content creation for the task`
+    });
+  }
+
+  return tasks;
+}
+
+/**
+ * Extract a keyword from the task description for task titles
+ */
+function extractKeyword(taskDescription, keywords) {
+  const desc = taskDescription.toLowerCase();
+  for (const keyword of keywords) {
+    if (desc.includes(keyword)) {
+      return keyword.charAt(0).toUpperCase() + keyword.slice(1);
+    }
+  }
+  return '';
+}
+
+/**
  * Main allocation function
  * Takes a PM task and returns the full allocation graph
  * Uses Gemini AI for smart breakdown, falls back to templates
@@ -261,15 +473,15 @@ async function allocateTask(taskDescription, taskType = null) {
     console.log('⚠️ Gemini AI failed, falling back to templates:', err.message);
   }
 
-  // Fallback to templates if AI didn't work
+  // Fallback to dynamic task generation if AI didn't work
   if (!taskBreakdown || Object.values(taskBreakdown).every(t => t.length === 0)) {
-    console.log('📋 Using template-based task breakdown');
-    taskBreakdown = TASK_TEMPLATES[detectedType] || TASK_TEMPLATES['general'];
+    console.log('📋 Using dynamic task breakdown based on task description keywords');
+    taskBreakdown = generateDynamicTaskBreakdown(taskDescription);
     thinking = {
-      task_analysis: `Using predefined template for ${detectedType.replace(/_/g, ' ')} tasks`,
-      tech_thinking: 'Technical tasks based on standard requirements',
-      marketing_thinking: 'Marketing tasks based on standard requirements',
-      editing_thinking: 'Content tasks based on standard requirements'
+      task_analysis: `Dynamically generated tasks based on keywords in: "${taskDescription.substring(0, 100)}..."`,
+      tech_thinking: 'Technical tasks extracted from task requirements',
+      marketing_thinking: 'Marketing tasks extracted from task requirements',
+      editing_thinking: 'Content tasks extracted from task requirements'
     };
   }
 

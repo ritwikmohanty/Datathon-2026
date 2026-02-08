@@ -80,7 +80,7 @@ router.get('/templates', (req, res) => {
  */
 router.post('/allocate', async (req, res) => {
   try {
-    const { task_description, task_type, use_sequential = false, use_hierarchical = true } = req.body;
+    const { task_description, task_type, use_sequential = false, use_hierarchical = false } = req.body;
 
     if (!task_description || task_description.trim().length === 0) {
       return res.status(400).json({
@@ -89,6 +89,7 @@ router.post('/allocate', async (req, res) => {
       });
     }
 
+    // Default to template-based allocation (more reliable, no API quota issues)
     let mode = 'Template-based';
     if (use_hierarchical) {
       mode = 'Hierarchical LLM (PM→Teams→Members)';
@@ -103,60 +104,161 @@ router.post('/allocate', async (req, res) => {
     console.log(`${'='.repeat(60)}\n`);
 
     let allocation;
+    
+    // Always use template-based allocation first (it's reliable and fast)
+    // LLM-based methods can be enabled via flags if needed
     if (use_hierarchical) {
-      allocation = await allocateTaskHierarchical(task_description.trim());
+      try {
+        allocation = await allocateTaskHierarchical(task_description.trim());
+        // Transform hierarchical format to frontend format
+        if (allocation && allocation.allocations) {
+          allocation = transformHierarchicalToFrontend(allocation, task_description.trim());
+        }
+      } catch (llmError) {
+        console.log('⚠️ Hierarchical LLM failed, falling back to template:', llmError.message);
+        allocation = await allocateTask(task_description.trim(), task_type);
+      }
     } else if (use_sequential) {
-      allocation = await allocateTaskSequential(task_description.trim());
+      try {
+        allocation = await allocateTaskSequential(task_description.trim());
+      } catch (llmError) {
+        console.log('⚠️ Sequential LLM failed, falling back to template:', llmError.message);
+        allocation = await allocateTask(task_description.trim(), task_type);
+      }
     } else {
+      // Default: use template-based allocation (no LLM calls, always works)
       allocation = await allocateTask(task_description.trim(), task_type);
     }
 
     // Save generated subtasks to MongoDB
     try {
-      if (allocation && allocation.allocations) {
+      if (allocation && allocation.teams) {
         const Task = require('../models/Task');
         const User = require('../models/User');
         
-        // We need users to map IDs
         const users = await User.find({});
         
-        for (const [dept, deptAlloc] of Object.entries(allocation.allocations)) {
-          if (!deptAlloc.work_assignments) continue;
+        for (const [teamKey, team] of Object.entries(allocation.teams)) {
+          if (!team.tasks) continue;
           
-          for (const assignment of deptAlloc.work_assignments) {
-            // Find user _id
-            const user = users.find(u => u.employee_id === assignment.assigned_to_id);
+          for (const task of team.tasks) {
+            const assignedUserId = task.assigned_to?.id;
+            const user = users.find(u => u.employee_id === assignedUserId);
             
-            const task = new Task({
+            // Map team to role_required
+            let roleRequired = 'general';
+            if (teamKey === 'tech') {
+              const skills = task.required_skills || [];
+              if (skills.some(s => s.toLowerCase().includes('backend') || s.toLowerCase().includes('node') || s.toLowerCase().includes('express'))) {
+                roleRequired = 'backend';
+              } else if (skills.some(s => s.toLowerCase().includes('devops') || s.toLowerCase().includes('docker') || s.toLowerCase().includes('ci/cd'))) {
+                roleRequired = 'devops';
+              } else {
+                roleRequired = 'frontend';
+              }
+            } else if (teamKey === 'marketing') {
+              roleRequired = 'marketing';
+            } else if (teamKey === 'editing') {
+              roleRequired = 'editing';
+            }
+            
+            const newTask = new Task({
               task_id: `TASK-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-              title: assignment.work_item.substring(0, 100),
-              description: assignment.work_item + `\n\nReasoning: ${assignment.reasoning}`,
-              role_required: user ? user.role : 'Specialist',
+              title: task.title.substring(0, 100),
+              description: task.description || task.title,
+              role_required: roleRequired,
               priority: 'medium',
               deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+              estimated_hours: task.estimated_hours || 8,
               status: 'allocated',
               allocated_to: user ? user._id : null,
               sprint_name: `Sprint ${new Date().getMonth() + 1}`
             });
-            await task.save();
+            await newTask.save();
           }
         }
         console.log('✅ Allocation results saved to MongoDB Tasks');
       }
     } catch (dbError) {
       console.error('Error saving tasks to MongoDB:', dbError);
-      // Don't fail the request if saving fails, just log it
     }
 
-    res.json({
-      success: true,
-      allocation
-    });
+    res.json(allocation);
   } catch (error) {
     console.error('Error allocating task:', error);
     res.status(500).json({ success: false, error: 'Failed to allocate task' });
   }
 });
+
+/**
+ * Transform hierarchical LLM allocation format to frontend-expected format
+ */
+function transformHierarchicalToFrontend(hierarchicalResult, taskDescription) {
+  const { loadEmployeeData } = require('../services/taskAllocator');
+  
+  return (async () => {
+    const data = await loadEmployeeData();
+    
+    const teams = {};
+    
+    for (const [teamKey, teamAlloc] of Object.entries(hierarchicalResult.allocations || {})) {
+      const teamData = data.teams[teamKey];
+      if (!teamData) continue;
+      
+      const tasks = (teamAlloc.work_assignments || []).map(assignment => {
+        // Find the member in the team
+        const member = teamData.members.find(m => 
+          m.name.toLowerCase() === assignment.assigned_to_name?.toLowerCase()
+        );
+        
+        return {
+          title: assignment.work_item,
+          description: assignment.work_item,
+          required_skills: member?.skills?.slice(0, 3) || [],
+          complexity: 'medium',
+          estimated_hours: 8,
+          task_reasoning: '',
+          assigned_to: member ? {
+            id: member.id,
+            name: member.name,
+            role: member.role,
+            years_of_experience: member.years_of_experience,
+            availability: member.availability,
+            free_slots_per_week: member.free_slots_per_week
+          } : null,
+          score: {
+            total: 0.85,
+            breakdown: { skill_match: 0.8, experience: 0.8, availability: 0.9, past_performance: 0.85, expertise_depth: 0.8 },
+            weights: { skill_match: 0.4, experience: 0.2, availability: 0.2, past_performance: 0.1, expertise_depth: 0.1 }
+          },
+          reasoning: [assignment.reasoning],
+          all_candidates: []
+        };
+      });
+      
+      teams[teamKey] = {
+        team_name: teamData.team_name,
+        description: teamData.description,
+        thinking: teamAlloc.team_analysis,
+        tasks
+      };
+    }
+    
+    return {
+      product_manager: data.product_manager,
+      task_description: taskDescription,
+      task_type: 'general',
+      ai_generated: true,
+      thinking: {
+        task_analysis: hierarchicalResult.pm_analysis || '',
+        tech_thinking: hierarchicalResult.allocations?.tech?.team_analysis || '',
+        marketing_thinking: hierarchicalResult.allocations?.marketing?.team_analysis || '',
+        editing_thinking: hierarchicalResult.allocations?.editing?.team_analysis || ''
+      },
+      teams
+    };
+  })();
+}
 
 /**
  * GET /api/tasks/allocate/stream

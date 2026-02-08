@@ -10,7 +10,7 @@ const TaskSchema = new mongoose.Schema(
     role_required: {
       type: String,
       required: true,
-      enum: ["frontend", "backend", "qa", "devops"],
+      enum: ["frontend", "backend", "qa", "devops", "marketing", "editing", "general"],
     },
 
     priority: {

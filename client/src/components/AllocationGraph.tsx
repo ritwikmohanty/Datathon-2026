@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -40,8 +40,17 @@ function buildGraph(allocation: AllocationResult): { nodes: Node[]; edges: Edge[
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  const teamKeys = TEAM_ORDER.filter(k => allocation.teams[k]);
+  // Guard against missing data
+  if (!allocation || !allocation.teams) {
+    return { nodes, edges };
+  }
+
+  const teamKeys = TEAM_ORDER.filter(k => allocation.teams[k] && allocation.teams[k].tasks);
   const totalTeams = teamKeys.length;
+
+  if (totalTeams === 0) {
+    return { nodes, edges };
+  }
 
   // Calculate layout
   const teamSpacing = 450;
@@ -157,8 +166,15 @@ export default function AllocationGraph({ allocation }: AllocationGraphProps) {
     [allocation]
   );
 
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
-  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // Update nodes and edges when allocation changes
+  useEffect(() => {
+    const { nodes: newNodes, edges: newEdges } = buildGraph(allocation);
+    setNodes(newNodes);
+    setEdges(newEdges);
+  }, [allocation, setNodes, setEdges]);
 
   const onInit = useCallback((instance: { fitView: () => void }) => {
     setTimeout(() => instance.fitView(), 100);
