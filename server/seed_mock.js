@@ -20,14 +20,14 @@ const Issue = require('./models/Issue');
 const Commit = require('./models/Commit');
 const Sprint = require('./models/Sprint');
 
-// Configuration
+// Configuration - Simplified for readable graph visualization
 const MOCK_CONFIG = {
-    teams: 4,
-    usersPerTeam: 5,
-    projectsPerTeam: 2,
-    issuesPerProject: 15,
-    commitsPerUser: 20,
-    sprintsPerProject: 3
+    teams: 2,
+    usersPerTeam: 3,
+    projectsPerTeam: 1,
+    issuesPerProject: 5,
+    commitsPerUser: 4,
+    sprintsPerProject: 1
 };
 
 // Mock Data Templates
@@ -42,10 +42,8 @@ const ROLE_TEMPLATES = {
 };
 
 const TEAM_TEMPLATES = [
-    { name: 'Frontend Team', department: 'Engineering', skills: ['React', 'TypeScript', 'CSS', 'HTML'] },
-    { name: 'Backend Team', department: 'Engineering', skills: ['Node.js', 'Python', 'MongoDB', 'PostgreSQL'] },
-    { name: 'Platform Team', department: 'DevOps', skills: ['Kubernetes', 'Docker', 'AWS', 'Terraform'] },
-    { name: 'Data Team', department: 'Engineering', skills: ['Python', 'SQL', 'Spark', 'Machine Learning'] },
+    { name: 'Frontend Team', department: 'Engineering', skills: ['React', 'TypeScript', 'CSS'] },
+    { name: 'Backend Team', department: 'Engineering', skills: ['Node.js', 'Python', 'MongoDB'] }
 ];
 
 const FIRST_NAMES = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Sam', 'Quinn', 'Avery', 'Jamie', 
@@ -161,7 +159,7 @@ async function seedDatabase() {
         let userIndex = 0;
 
         for (const team of teams) {
-            const teamRoles = ['Tech Lead', 'Senior Developer', 'Developer', 'Developer', 'QA Engineer'];
+            const teamRoles = ['Tech Lead', 'Senior Developer', 'Developer'];
             const teamMembers = [];
 
             for (let i = 0; i < MOCK_CONFIG.usersPerTeam; i++) {
@@ -205,14 +203,11 @@ async function seedDatabase() {
             console.log(`   Created ${MOCK_CONFIG.usersPerTeam} users for ${team.name}`);
         }
 
-        // Add leadership roles
+        // Add leadership roles (reduced to 2)
         console.log('\n👔 Creating leadership users...');
         const leadershipRoles = [
             { role: 'Project Manager', department: 'Product', team: 'Leadership' },
-            { role: 'Product Manager', department: 'Product', team: 'Leadership' },
-            { role: 'HR', department: 'HR', team: 'HR' },
-            { role: 'Finance', department: 'Finance', team: 'Finance' },
-            { role: 'Executive', department: 'Executive', team: 'Executive' },
+            { role: 'Product Manager', department: 'Product', team: 'Leadership' }
         ];
 
         for (const leader of leadershipRoles) {

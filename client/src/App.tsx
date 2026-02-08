@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { RoleManagement } from "@/components/RoleManagement"
-import { KnowledgeGraph } from "@/components/KnowledgeGraph"
+import { KnowledgeGraph3D } from "@/components/KnowledgeGraph3D"
 
 const API = "/api"
 
@@ -156,7 +156,17 @@ function App() {
 
       {activeTab === 'roles' && <RoleManagement />}
       
-      {activeTab === 'graph' && <KnowledgeGraph />}
+      {activeTab === 'graph' && (
+        <div className="fixed inset-0 z-50">
+          <KnowledgeGraph3D />
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className="fixed top-4 left-4 z-50 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 transition-colors"
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
+      )}
     </div>
   )
 }
