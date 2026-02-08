@@ -237,15 +237,7 @@ function App() {
           {/* Health & Metrics Widget - Integrated cleanly above Dashboard */}
           {health && metrics && (
             <div className="max-w-7xl mx-auto px-6 py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="border border-border bg-card p-4 rounded-lg flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Database className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">DB Status</span>
-                </div>
-                <span className={`text-xs font-mono px-2 py-1 rounded ${health.db === 'connected' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                  {health.db || 'Unknown'}
-                </span>
-              </div>
+              
               {/* Simplified Metrics Display */}
               {Object.entries(metrics.by_source_entity).slice(0, 3).map(([key, val]) => (
                 <div key={key} className="border border-border bg-card p-4 rounded-lg">

@@ -491,6 +491,180 @@ router.post('/burnout-analysis', async (req, res) => {
     }
 });
 
+/**
+ * POST /api/hr/generate-report
+ * Generate AI performance report using server-side proxy to avoid CORS/Auth issues
+ */
+router.post('/generate-report', async (req, res) => {
+    try {
+        const { employee, metrics } = req.body;
+        
+        if (!employee || !metrics) {
+            return res.status(400).json({ error: 'Missing employee or metrics data' });
+        }
+
+        const prompt = `You are an HR analytics expert. Analyze the following employee performance data and generate a comprehensive performance report.
+
+EMPLOYEE DATA:
+- Name: ${employee.name}
+- Role: ${employee.role}
+- Department: ${employee.department || 'N/A'} 
+- Team: ${employee.team || 'N/A'}
+- Seniority Level: ${employee.seniority_level}/5
+- Years of Experience: ${employee.years_of_experience || 'N/A'}
+- Skills: ${employee.skills?.join(', ') || 'N/A'}
+- Hourly Rate: $${employee.hourly_rate || 0}
+
+PERFORMANCE METRICS:
+- Total Commits: ${metrics.commits.total}
+- Code Added: ${metrics.commits.additions} lines
+- Code Removed: ${metrics.commits.deletions} lines
+- Avg Commit Size: ${metrics.commits.avg_size} lines
+- Last Commit: ${metrics.commits.last_commit || 'N/A'}
+
+- Total Tasks Assigned: ${metrics.tasks.total}
+- Tasks Completed: ${metrics.tasks.completed}
+- Tasks In Progress: ${metrics.tasks.in_progress}
+- Tasks Pending: ${metrics.tasks.pending}
+- Overdue Tasks: ${metrics.tasks.overdue}
+- Task Completion Rate: ${metrics.tasks.completion_rate}%
+
+- Total Estimated Hours: ${metrics.hours.total_estimated}
+- Hours Completed: ${metrics.hours.completed}
+
+- Workload Score: ${metrics.performance.workload_score}/100
+- Stress Level: ${metrics.performance.stress_level}/100
+- Efficiency Score: ${metrics.performance.efficiency}/100
+- Productivity Score: ${metrics.performance.productivity_score}/100
+
+Generate a JSON response with EXACTLY this structure (no markdown, just valid JSON):
+{
+  "summary": "2-3 sentence executive summary of performance",
+  "strengths": ["strength 1", "strength 2", "strength 3"],
+  "areas_for_improvement": ["area 1", "area 2"],
+  "recommendations": ["specific recommendation 1", "specific recommendation 2", "specific recommendation 3"],
+  "appraisal_score": <number 1-100>,
+  "budget_impact": {
+    "current_cost": <monthly cost based on hourly rate>,
+    "projected_value": <estimated value delivered based on metrics>,
+    "roi_assessment": "positive/neutral/negative with brief explanation"
+  },
+  "promotion_readiness": "ready/developing/not ready - with brief explanation"
+}
+
+Base your analysis ONLY on the provided metrics. Be specific and quantifiable.`;
+
+        const response = await featherlessService.generateCompletion([
+            { role: 'system', content: 'You are an HR analytics expert. Respond only with valid JSON, no markdown.' },
+            { role: 'user', content: prompt }
+        ], {
+            temperature: 0.3,
+            max_tokens: 1500
+        });
+
+        // Parse JSON content
+        const content = response.choices?.[0]?.message?.content || '';
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        
+        if (jsonMatch) {
+            try {
+                const parsed = JSON.parse(jsonMatch[0]);
+                res.json(parsed);
+            } catch (e) {
+                console.error('JSON Parse Error:', e);
+                // Fallback if strict JSON parsing fails but content exists
+                res.json({ 
+                    summary: "Report generated but format required adjustment.", 
+                    raw_content: content.substring(0, 500) + "..."
+                });
+            }
+        } else {
+            res.status(500).json({ error: 'Failed to generate valid JSON report', raw: content });
+        }
+
+    } catch (err) {
+        console.error('Report Generation Error:', err);
+        res.status(err.status || 500).json({ error: err.message });
+    }
+});
+
+/**
+ * POST /api/hr/generate-retention-insight
+ * Generate AI retention insights using server-side proxy
+ */
+router.post('/generate-retention-insight', async (req, res) => {
+    try {
+        const { summary, employees, risks } = req.body;
+        
+        if (!summary) {
+            return res.status(400).json({ error: 'Missing retention data' });
+        }
+
+        const prompt = `You are an HR retention expert. Analyze this team retention data and provide actionable insights.
+
+RETENTION SUMMARY:
+- Total Employees: ${summary.total_employees}
+- Critical Risk: ${summary.critical_risk} employees
+- High Risk: ${summary.high_risk} employees  
+- Medium Risk: ${summary.medium_risk} employees
+- Low Risk: ${summary.low_risk} employees
+- Average Risk Score: ${summary.avg_risk_score}/100
+
+HIGH-RISK EMPLOYEES:
+${(risks || []).map(e => `
+- ${e.name} (${e.role}, ${e.team || 'No Team'})
+  Risk Score: ${e.risk_score}/100
+  Workload: ${e.workload}%
+  Activity Trend: ${e.activity_trend}%
+  Overdue Tasks: ${e.overdue}
+  Active Tasks: ${e.active}
+`).join('')}
+
+Generate a JSON response with EXACTLY this structure (no markdown, just valid JSON):
+{
+  "overall_assessment": "2-3 sentence assessment of team retention health",
+  "critical_actions": ["immediate action 1", "immediate action 2", "immediate action 3"],
+  "team_recommendations": ["team-level recommendation 1", "team-level recommendation 2"],
+  "wellness_initiatives": ["wellness initiative 1", "wellness initiative 2", "wellness initiative 3"]
+}
+
+Base recommendations ONLY on the provided data. Be specific and actionable.`;
+
+        const response = await featherlessService.generateCompletion([
+            { role: 'system', content: 'You are an HR retention expert. Respond only with valid JSON.' },
+            { role: 'user', content: prompt }
+        ], {
+            temperature: 0.3,
+            max_tokens: 1000
+        });
+
+        // Parse JSON content
+        const content = response.choices?.[0]?.message?.content || '';
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        
+        if (jsonMatch) {
+            try {
+                const parsed = JSON.parse(jsonMatch[0]);
+                res.json(parsed);
+            } catch (e) {
+                console.error('JSON Parse Error:', e);
+                res.json({ 
+                    overall_assessment: "Analysis completed but format required adjustment.",
+                    critical_actions: ["Check system logs"],
+                    team_recommendations: [],
+                    wellness_initiatives: []
+                });
+            }
+        } else {
+            res.status(500).json({ error: 'Failed to generate valid JSON insight' });
+        }
+
+    } catch (err) {
+        console.error('Retention Insight Error:', err);
+        res.status(err.status || 500).json({ error: err.message });
+    }
+});
+
 // Helper function
 function getWeekStart(date) {
     const d = new Date(date);
