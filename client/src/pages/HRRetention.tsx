@@ -19,7 +19,7 @@ import {
   Loader2
 } from "lucide-react"
 
-const API = "/api"
+const API = import.meta.env.VITE_API_URL || "/api"
 const FEATHERLESS_API_URL = 'https://api.featherless.ai/v1/chat/completions'
 
 // ============================================

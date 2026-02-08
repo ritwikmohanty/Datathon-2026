@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+const API = import.meta.env.VITE_API_URL || "/api";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -82,7 +84,7 @@ export default function MeetingTranscript({
     setSyncResults(null);
 
     try {
-      const response = await fetch("/api/transcript/analyze", {
+      const response = await fetch(`${API}/transcript/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ transcript }),
@@ -141,7 +143,7 @@ export default function MeetingTranscript({
     setError(null);
 
     try {
-      const response = await fetch("/api/transcript/create-jira-tasks", {
+      const response = await fetch(`${API}/transcript/create-jira-tasks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tasks: tasksToSync }),

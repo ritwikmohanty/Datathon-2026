@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+const API = import.meta.env.VITE_API_URL || "/api";
 import {
   ReactFlow,
   Background,
@@ -143,7 +145,7 @@ function generateJiraTickets(
 // Save tasks to database
 async function saveTasksToDatabase(allocationData: AllocationData): Promise<void> {
   try {
-    const response = await fetch('/api/tasks/save-allocation', {
+    const response = await fetch(`${API}/tasks/save-allocation`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -171,7 +173,7 @@ async function saveTasksToDatabase(allocationData: AllocationData): Promise<void
 // Sync tasks to Jira
 async function syncTasksToJira(): Promise<{success: boolean, results?: any, error?: string}> {
   try {
-    const response = await fetch('/api/jira/sync-tasks', {
+    const response = await fetch(`${API}/jira/sync-tasks`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

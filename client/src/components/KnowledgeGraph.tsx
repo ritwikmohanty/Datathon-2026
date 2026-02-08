@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import ForceGraph2D from "react-force-graph-2d"
 
-const API = "/api"
+const API = import.meta.env.VITE_API_URL || "/api"
 
 interface GraphStatus {
   status: string

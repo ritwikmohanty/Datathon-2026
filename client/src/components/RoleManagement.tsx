@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 
-const API = "/api"
+const API = import.meta.env.VITE_API_URL || "/api"
 
 interface User {
   _id: string
