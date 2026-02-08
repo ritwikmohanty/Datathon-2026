@@ -21,6 +21,7 @@ const convertToEmployee = (emp: EmployeeData): Employee => ({
 interface TaskSlot {
   id: string;
   title: string;
+  description: string;
   requiredSkills: string[];
   estimatedHours: number;
   assignedEmployee?: Employee;
@@ -46,6 +47,7 @@ interface AllocationData {
   tasks: {
     id: string;
     title: string;
+    description: string;
     required_skills: string[];
     estimated_hours: number;
     assigned_employee_ids: string[];
@@ -194,6 +196,7 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
       const llmTasks: TaskSlot[] = llmResponse.tasks.map(t => ({
         id: t.id,
         title: t.title,
+        description: t.description || '',
         requiredSkills: t.required_skills,
         estimatedHours: t.estimated_hours,
         candidates: [],
@@ -1038,6 +1041,7 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
                       tasks: tasks.map(t => ({
                         id: t.id,
                         title: t.title,
+                        description: t.description || '',
                         required_skills: t.requiredSkills,
                         estimated_hours: t.estimatedHours,
                         assigned_employee_ids: t.assignedEmployees?.map(e => e.id) || (t.assignedEmployee ? [t.assignedEmployee.id] : []),

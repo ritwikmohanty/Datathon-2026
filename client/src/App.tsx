@@ -5,6 +5,7 @@ import { RoleManagement } from "@/components/RoleManagement"
 import { KnowledgeGraph3D } from "@/components/KnowledgeGraph3D"
 import SmartAllocate from "@/pages/SmartAllocate"
 import DelayPrediction from "@/pages/DelayPrediction"
+import AllocationSimulation from "@/pages/AllocationSimulation"
 
 const API = "/api"
 
@@ -19,6 +20,7 @@ interface AllocationData {
   tasks: {
     id: string;
     title: string;
+    description: string;
     required_skills: string[];
     estimated_hours: number;
     assigned_employee_ids: string[];
@@ -37,7 +39,7 @@ interface AllocationData {
   total_hours: number;
 }
 
-type Tab = 'dashboard' | 'roles' | 'graph' | 'smart-allocate' | 'delay-prediction'
+type Tab = 'dashboard' | 'roles' | 'graph' | 'smart-allocate' | 'allocation-simulation' | 'delay-prediction'
 
 function App() {
   const [health, setHealth] = useState<Health | null>(null)
@@ -114,6 +116,14 @@ function App() {
           onClick={() => setActiveTab('smart-allocate')}
         >
           Smart Allocate
+        </Button>
+        <Button 
+          variant={activeTab === 'allocation-simulation' ? "default" : "outline"} 
+          onClick={() => setActiveTab('allocation-simulation')}
+          disabled={!allocationData}
+          title={!allocationData ? "Run Smart Allocate first" : "View allocation graph simulation"}
+        >
+          Graph Simulation
         </Button>
         <Button 
           variant={activeTab === 'delay-prediction' ? "default" : "outline"} 
@@ -213,10 +223,20 @@ function App() {
             <SmartAllocate 
               onNavigateToDelay={(data) => {
                 setAllocationData(data);
-                setActiveTab('delay-prediction');
+                setActiveTab('allocation-simulation');
               }}
             />
           </MemoryRouter>
+        </div>
+      )}
+
+      {activeTab === 'allocation-simulation' && (
+        <div className="w-full h-screen">
+          <AllocationSimulation 
+            allocationData={allocationData}
+            onBack={() => setActiveTab('smart-allocate')}
+            onContinueToDelay={() => setActiveTab('delay-prediction')}
+          />
         </div>
       )}
 
@@ -224,7 +244,7 @@ function App() {
         <div className="w-full">
           <MemoryRouter initialEntries={[{ pathname: '/delay-prediction', state: { allocation: allocationData } }]}>
             <DelayPrediction 
-              onBack={() => setActiveTab('smart-allocate')}
+              onBack={() => setActiveTab('allocation-simulation')}
               allocationDataProp={allocationData}
             />
           </MemoryRouter>
