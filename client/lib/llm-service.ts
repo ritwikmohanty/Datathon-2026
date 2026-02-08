@@ -1,5 +1,5 @@
 import { EmployeeData, FeatureRequest, LLMAllocationResponse, TaskData } from './types';
-import { fetchEmployees } from './api-service';
+import { fetchEmployees, fetchEnhancedEmployees, fetchDelayPredictionData } from './api-service';
 
 const FEATHERLESS_API_URL = 'https://api.featherless.ai/v1/chat/completions';
 
@@ -8,6 +8,7 @@ const USE_MONGODB = import.meta.env.VITE_USE_MONGODB === 'true';
 
 // Cache for employees from MongoDB
 let cachedEmployees: EmployeeData[] | null = null;
+let cachedEnhancedEmployees: any[] | null = null;
 
 // Get employees - from MongoDB or mock data
 export const getEmployees = async (): Promise<EmployeeData[]> => {
@@ -36,9 +37,66 @@ export const getEmployees = async (): Promise<EmployeeData[]> => {
   return syntheticEmployees;
 };
 
+// Get enhanced employees with JIRA and GitHub data
+export const getEnhancedEmployees = async (): Promise<EmployeeData[]> => {
+  if (!cachedEnhancedEmployees) {
+    try {
+      console.log('📡 Fetching enhanced employees with JIRA/GitHub data...');
+      const data = await fetchEnhancedEmployees();
+      if (data && data.length > 0) {
+        // Convert enhanced format to EmployeeData
+        cachedEnhancedEmployees = data.map((emp: any) => ({
+          id: emp.id,
+          name: emp.name,
+          role: emp.role,
+          avatar: emp.avatar,
+          availability: emp.availability,
+          hours_per_week: emp.hours_per_week,
+          workload: emp.workload,
+          tech_stack: emp.tech_stack,
+          seniority: emp.seniority,
+          efficiency: emp.efficiency,
+          stress: emp.stress,
+          cost_per_hour: emp.cost_per_hour,
+          experience: emp.experience,
+          // Enhanced fields
+          source: emp.source,
+          jira_data: emp.jira_data,
+          github_data: emp.github_data
+        }));
+        console.log('✅ Loaded enhanced employees:', cachedEnhancedEmployees!.length);
+        return cachedEnhancedEmployees!;
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch enhanced employees:', error);
+    }
+  } else {
+    return cachedEnhancedEmployees;
+  }
+  
+  // Fallback to regular getEmployees
+  return getEmployees();
+};
+
+// Get delay prediction data with commit metrics
+export const getDelayPredictionEmployees = async () => {
+  try {
+    console.log('📡 Fetching delay prediction data...');
+    const data = await fetchDelayPredictionData();
+    if (data && data.employees) {
+      console.log('✅ Loaded delay prediction data:', data.employees.length, 'employees');
+      return data.employees;
+    }
+  } catch (error) {
+    console.error('❌ Failed to fetch delay prediction data:', error);
+  }
+  return [];
+};
+
 // Clear cache (call after updates)
 export const clearEmployeeCache = () => {
   cachedEmployees = null;
+  cachedEnhancedEmployees = null;
 };
 
 // Tech stack domain mapping for finding similar technologies

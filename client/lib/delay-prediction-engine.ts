@@ -1007,6 +1007,41 @@ export class DelayPredictionEngine {
 // HELPER: Convert simple data to enhanced format
 // ============================================
 
+export interface SimpleEmployeeWithMetrics {
+  id: string;
+  name: string;
+  role: string;
+  tech_stack: string[];
+  hourly_rate: number;
+  workload: number;
+  // Optional: real data from JIRA/GitHub
+  commit_metrics?: {
+    total_commits: number;
+    recent_commits_30d: number;
+    commits_per_week: number;
+    avg_lines_per_commit: number;
+    velocity_score: number;
+  };
+  jira_metrics?: {
+    total_tickets: number;
+    open_tickets: number;
+    completed_tickets: number;
+    high_priority_open: number;
+    completion_rate: number;
+  };
+  scores?: {
+    workload: number;
+    productivity: number;
+    velocity: number;
+  };
+  delay_prediction?: {
+    impact_if_removed_days: number;
+    replacement_difficulty: string;
+    burnout_risk: string;
+    single_point_of_failure: boolean;
+  };
+}
+
 export function convertToEnhancedEmployee(simple: {
   id: string;
   name: string;
@@ -1014,6 +1049,11 @@ export function convertToEnhancedEmployee(simple: {
   tech_stack: string[];
   hourly_rate: number;
   workload: number;
+  // Optional enhanced data
+  commit_metrics?: SimpleEmployeeWithMetrics['commit_metrics'];
+  jira_metrics?: SimpleEmployeeWithMetrics['jira_metrics'];
+  scores?: SimpleEmployeeWithMetrics['scores'];
+  delay_prediction?: SimpleEmployeeWithMetrics['delay_prediction'];
 }): EnhancedEmployee {
   // Map simple role to enum
   const roleMap: Record<string, EnhancedEmployee['role']> = {
@@ -1041,6 +1081,30 @@ export function convertToEnhancedEmployee(simple: {
   else if (normalizedRole.includes('junior')) seniority = 1;
   else if (normalizedRole.includes('principal') || normalizedRole.includes('staff')) seniority = 5;
   
+  // Use real commit metrics if available, otherwise simulate
+  const hasRealCommitData = simple.commit_metrics && simple.commit_metrics.total_commits > 0;
+  const avgCommitsPerWeek = hasRealCommitData 
+    ? simple.commit_metrics!.commits_per_week 
+    : 15 + Math.random() * 20;
+  const avgLinesPerCommit = hasRealCommitData 
+    ? simple.commit_metrics!.avg_lines_per_commit 
+    : 50 + Math.random() * 100;
+  const velocityScore = hasRealCommitData 
+    ? simple.commit_metrics!.velocity_score / 10 // Convert from 0-100 to 0-10 scale
+    : 8 + Math.random() * 12;
+  
+  // Use real JIRA metrics if available
+  const hasRealJiraData = simple.jira_metrics && simple.jira_metrics.total_tickets > 0;
+  const completionRate = hasRealJiraData 
+    ? simple.jira_metrics!.completion_rate / 100 
+    : 0.7 + Math.random() * 0.25;
+  const workloadScore = hasRealJiraData
+    ? simple.jira_metrics!.open_tickets * 15
+    : simple.workload;
+    
+  // Use real scores if available
+  const productivity = simple.scores?.productivity || Math.round(completionRate * 100);
+  
   return {
     id: simple.id,
     user_id: `user:${simple.id}`,
@@ -1052,18 +1116,20 @@ export function convertToEnhancedEmployee(simple: {
     seniority_level: seniority,
     capacity_hours_per_sprint: 40,
     performance: {
-      avg_commits_per_week: 15 + Math.random() * 20, // Simulated
-      avg_lines_per_commit: 50 + Math.random() * 100,
-      code_review_approval_rate: 0.7 + Math.random() * 0.25,
+      avg_commits_per_week: avgCommitsPerWeek,
+      avg_lines_per_commit: avgLinesPerCommit,
+      code_review_approval_rate: completionRate,
       bug_introduction_rate: 0.5 + Math.random() * 1.5,
-      avg_task_completion_days: 2 + Math.random() * 3,
-      velocity_score: 8 + Math.random() * 12,
-      on_time_delivery_rate: 0.7 + Math.random() * 0.25,
-      collaboration_score: 0.6 + Math.random() * 0.35
+      avg_task_completion_days: hasRealJiraData ? 3 : 2 + Math.random() * 3,
+      velocity_score: velocityScore,
+      on_time_delivery_rate: completionRate,
+      collaboration_score: hasRealCommitData ? (avgCommitsPerWeek / 35) : 0.6 + Math.random() * 0.35
     },
-    current_workload: simple.workload || 50,
-    active_tasks: Math.ceil(simple.workload / 20) || 2,
-    stress_indicator: (simple.workload || 50) / 100 * 0.8
+    current_workload: workloadScore || simple.workload || 50,
+    active_tasks: hasRealJiraData ? simple.jira_metrics!.open_tickets : Math.ceil(simple.workload / 20) || 2,
+    stress_indicator: simple.delay_prediction?.burnout_risk === 'high' ? 0.8 : 
+                      simple.delay_prediction?.burnout_risk === 'medium' ? 0.5 : 
+                      (workloadScore || simple.workload || 50) / 100 * 0.8
   };
 }
 

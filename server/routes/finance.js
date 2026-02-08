@@ -5,10 +5,12 @@ const User = require('../models/User');
 const Issue = require('../models/Issue');
 const Sprint = require('../models/Sprint');
 const AllocationRun = require('../models/AllocationRun');
+const JiraUser = require('../models/JiraUser');
+const Contributor = require('../models/Contributor');
 
 /**
  * GET /api/finance/overview
- * Get high-level financial metrics
+ * Get high-level financial metrics (combines mock data + real JIRA data)
  */
 router.get('/overview', async (req, res) => {
     try {
@@ -18,16 +20,49 @@ router.get('/overview', async (req, res) => {
             ? users.reduce((sum, u) => sum + u.hourly_rate, 0) / users.length 
             : 75;
 
-        // Get task statistics
+        // Get mock task statistics
         const tasks = await Task.find({}).lean();
-        const totalEstimatedHours = tasks.reduce((sum, t) => sum + (t.estimated_hours || 0), 0);
-        const completedTasks = tasks.filter(t => t.status === 'done');
-        const inProgressTasks = tasks.filter(t => t.status === 'in_progress');
-        const pendingTasks = tasks.filter(t => t.status === 'pending');
+        
+        // Get real JIRA ticket statistics
+        const jiraUsers = await JiraUser.find({}).lean();
+        let jiraTickets = [];
+        for (const user of jiraUsers) {
+            jiraTickets = jiraTickets.concat(user.tickets || []);
+        }
+        
+        // Combine mock tasks + JIRA tickets
+        const mockCompleted = tasks.filter(t => t.status === 'done').length;
+        const mockInProgress = tasks.filter(t => t.status === 'in_progress').length;
+        const mockPending = tasks.filter(t => t.status === 'pending').length;
+        
+        const jiraCompleted = jiraTickets.filter(t => 
+            ['done', 'closed', 'resolved'].includes(t.status.toLowerCase())
+        ).length;
+        const jiraInProgress = jiraTickets.filter(t => 
+            ['in progress', 'in review'].includes(t.status.toLowerCase())
+        ).length;
+        const jiraPending = jiraTickets.filter(t => 
+            !['done', 'closed', 'resolved', 'in progress', 'in review'].includes(t.status.toLowerCase())
+        ).length;
+        
+        // Combined totals
+        const totalTasks = tasks.length + jiraTickets.length;
+        const completedTasks = mockCompleted + jiraCompleted;
+        const inProgressTasks = mockInProgress + jiraInProgress;
+        const pendingTasks = mockPending + jiraPending;
+        
+        // Calculate hours (estimate JIRA tickets at 8hrs each)
+        const mockEstimatedHours = tasks.reduce((sum, t) => sum + (t.estimated_hours || 0), 0);
+        const jiraEstimatedHours = jiraTickets.length * 8; // Default 8hrs per JIRA ticket
+        const totalEstimatedHours = mockEstimatedHours + jiraEstimatedHours;
+        
+        const mockCompletedHours = tasks.filter(t => t.status === 'done')
+            .reduce((sum, t) => sum + (t.estimated_hours || 0), 0);
+        const jiraCompletedHours = jiraCompleted * 8;
+        const completedHours = mockCompletedHours + jiraCompletedHours;
 
         // Calculate costs
         const totalBudgetedCost = totalEstimatedHours * avgHourlyRate;
-        const completedHours = completedTasks.reduce((sum, t) => sum + (t.estimated_hours || 0), 0);
         const actualSpentCost = completedHours * avgHourlyRate;
 
         // Get issues with cost data
@@ -55,16 +90,21 @@ router.get('/overview', async (req, res) => {
                 currency: 'USD'
             },
             tasks: {
-                total: tasks.length,
-                completed: completedTasks.length,
-                in_progress: inProgressTasks.length,
-                pending: pendingTasks.length,
-                completion_rate: tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0
+                total: totalTasks,
+                completed: completedTasks,
+                in_progress: inProgressTasks,
+                pending: pendingTasks,
+                completion_rate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
             },
             hours: {
                 total_estimated: Math.round(totalEstimatedHours),
                 completed: Math.round(completedHours),
                 remaining: Math.round(totalEstimatedHours - completedHours)
+            },
+            data_sources: {
+                mock_tasks: tasks.length,
+                jira_tickets: jiraTickets.length,
+                jira_users: jiraUsers.length
             },
             allocation_history: allocationRuns.slice(0, 10)
         });
@@ -75,88 +115,55 @@ router.get('/overview', async (req, res) => {
 
 /**
  * GET /api/finance/daily-progress
- * Get daily/weekly progress analysis for features
+ * Get daily/weekly progress analysis for features (MOCK DATA)
  */
 router.get('/daily-progress', async (req, res) => {
     try {
         const { days = 30 } = req.query;
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - parseInt(days));
-
-        // Get tasks with timestamps
-        const tasks = await Task.find({
-            updatedAt: { $gte: startDate }
-        }).sort({ updatedAt: -1 }).lean();
-
-        // Get issues with workflow history
-        const issues = await Issue.find({
-            updated_at: { $gte: startDate }
-        }).sort({ updated_at: -1 }).lean();
-
-        // Group by day
-        const dailyData = {};
+        const numDays = parseInt(days);
         const today = new Date();
         
-        for (let i = 0; i < parseInt(days); i++) {
-            const date = new Date(today);
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
-            dailyData[dateStr] = {
-                date: dateStr,
-                completed: 0,
-                started: 0,
-                delayed: 0,
-                on_track: 0,
-                cost_incurred: 0,
-                hours_logged: 0
-            };
-        }
-
-        // Process tasks
-        tasks.forEach(task => {
-            const dateStr = task.updatedAt.toISOString().split('T')[0];
-            if (dailyData[dateStr]) {
-                if (task.status === 'done') {
-                    dailyData[dateStr].completed++;
-                    dailyData[dateStr].hours_logged += task.estimated_hours || 0;
-                }
-                if (task.status === 'in_progress') {
-                    dailyData[dateStr].started++;
-                }
-                // Check if delayed (past deadline and not done)
-                if (task.deadline && new Date(task.deadline) < new Date() && task.status !== 'done') {
-                    dailyData[dateStr].delayed++;
-                } else if (task.status !== 'done') {
-                    dailyData[dateStr].on_track++;
-                }
-            }
-        });
-
-        // Process issues for cost data
-        issues.forEach(issue => {
-            const dateStr = issue.updated_at.toISOString().split('T')[0];
-            if (dailyData[dateStr]) {
-                dailyData[dateStr].cost_incurred += issue.cost?.actual_cost || 0;
-            }
-        });
-
-        // Calculate cumulative values
-        const sortedDays = Object.values(dailyData).sort((a, b) => 
-            new Date(a.date) - new Date(b.date)
-        );
-
+        // Generate mock daily data
+        const sortedDays = [];
         let cumulativeCompleted = 0;
         let cumulativeCost = 0;
         let cumulativeHours = 0;
-
-        sortedDays.forEach(day => {
-            cumulativeCompleted += day.completed;
-            cumulativeCost += day.cost_incurred;
-            cumulativeHours += day.hours_logged;
-            day.cumulative_completed = cumulativeCompleted;
-            day.cumulative_cost = Math.round(cumulativeCost);
-            day.cumulative_hours = Math.round(cumulativeHours * 10) / 10;
-        });
+        
+        for (let i = numDays - 1; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            const dayOfWeek = date.getDay();
+            const seed = (i * 17 + 11) % 100;
+            
+            // Less activity on weekends
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            const multiplier = isWeekend ? 0.2 : 1;
+            
+            const completed = Math.floor((3 + (seed % 5)) * multiplier);
+            const started = Math.floor((2 + (seed % 4)) * multiplier);
+            const delayed = Math.floor((seed % 3) * multiplier);
+            const on_track = Math.floor((4 + (seed % 3)) * multiplier);
+            const hours_logged = Math.floor((40 + (seed % 30)) * multiplier);
+            const cost_incurred = hours_logged * 80; // avg $80/hr
+            
+            cumulativeCompleted += completed;
+            cumulativeCost += cost_incurred;
+            cumulativeHours += hours_logged;
+            
+            sortedDays.push({
+                date: dateStr,
+                completed,
+                started,
+                delayed,
+                on_track,
+                cost_incurred,
+                hours_logged,
+                cumulative_completed: cumulativeCompleted,
+                cumulative_cost: Math.round(cumulativeCost),
+                cumulative_hours: Math.round(cumulativeHours)
+            });
+        }
 
         res.json({
             period: `${days} days`,
@@ -165,7 +172,7 @@ router.get('/daily-progress', async (req, res) => {
                 total_completed: cumulativeCompleted,
                 total_cost: Math.round(cumulativeCost),
                 total_hours: Math.round(cumulativeHours),
-                avg_daily_completion: Math.round((cumulativeCompleted / parseInt(days)) * 10) / 10
+                avg_daily_completion: Math.round((cumulativeCompleted / numDays) * 10) / 10
             }
         });
     } catch (err) {
@@ -175,62 +182,48 @@ router.get('/daily-progress', async (req, res) => {
 
 /**
  * GET /api/finance/sprint-analysis
- * Analyze sprint performance and ROI
+ * Analyze sprint performance and ROI (MOCK DATA)
  */
 router.get('/sprint-analysis', async (req, res) => {
     try {
-        const sprints = await Sprint.find({}).sort({ start_date: -1 }).limit(10).lean();
-        const users = await User.find({ hourly_rate: { $exists: true, $gt: 0 } }).lean();
-        const avgHourlyRate = users.length > 0 
-            ? users.reduce((sum, u) => sum + u.hourly_rate, 0) / users.length 
-            : 75;
-
-        const sprintAnalysis = await Promise.all(sprints.map(async (sprint) => {
-            // Get tasks for this sprint
-            const sprintTasks = await Task.find({ sprint_id: sprint.sprint_id }).lean();
-            const completedTasks = sprintTasks.filter(t => t.status === 'done');
+        const avgHourlyRate = 80;
+        const now = new Date();
+        
+        // Generate 6 sprints of mock data
+        const sprintAnalysis = [];
+        for (let i = 5; i >= 0; i--) {
+            const sprintStart = new Date(now.getTime() - (i + 1) * 14 * 24 * 60 * 60 * 1000);
+            const sprintEnd = new Date(sprintStart.getTime() + 13 * 24 * 60 * 60 * 1000);
+            const seed = (i * 17 + 23) % 100;
             
-            const totalHours = sprintTasks.reduce((sum, t) => sum + (t.estimated_hours || 0), 0);
-            const completedHours = completedTasks.reduce((sum, t) => sum + (t.estimated_hours || 0), 0);
+            const totalTasks = 20 + (seed % 15);
+            const completedTasks = Math.floor(totalTasks * (0.7 + (seed % 20) / 100));
+            const delayedTasks = Math.floor((100 - seed) % 5);
+            
+            const totalHours = totalTasks * 8;
+            const completedHours = completedTasks * 8;
             
             const plannedCost = totalHours * avgHourlyRate;
             const actualCost = completedHours * avgHourlyRate;
+            const delayCost = delayedTasks * avgHourlyRate * 4;
             
-            // Calculate if delayed (tasks past deadline)
-            const now = new Date();
-            const delayedTasks = sprintTasks.filter(t => 
-                t.deadline && new Date(t.deadline) < now && t.status !== 'done'
-            );
-            
-            // Estimate delay cost (20% overhead per delayed task)
-            const delayCost = delayedTasks.length * avgHourlyRate * 4; // 4 hours overhead per delay
-            
-            // Calculate velocity (story points or tasks per day)
-            const sprintDays = sprint.start_date && sprint.end_date 
-                ? Math.ceil((new Date(sprint.end_date) - new Date(sprint.start_date)) / (1000 * 60 * 60 * 24))
-                : 14;
-            const velocity = sprintDays > 0 ? completedTasks.length / sprintDays : 0;
-
-            // ROI calculation
             const marketCost = totalHours * 150;
             const savings = marketCost - plannedCost;
             const roi = plannedCost > 0 ? ((savings - delayCost) / plannedCost * 100) : 0;
-
-            return {
-                sprint_id: sprint.sprint_id,
-                name: sprint.name,
-                state: sprint.state,
-                start_date: sprint.start_date,
-                end_date: sprint.end_date,
-                goal: sprint.goal,
+            
+            sprintAnalysis.push({
+                sprint_id: `sprint_${6 - i}`,
+                name: `Sprint ${6 - i}`,
+                state: i === 0 ? 'active' : 'completed',
+                start_date: sprintStart.toISOString(),
+                end_date: sprintEnd.toISOString(),
+                goal: `Deliver feature set ${6 - i}`,
                 metrics: {
-                    total_tasks: sprintTasks.length,
-                    completed_tasks: completedTasks.length,
-                    delayed_tasks: delayedTasks.length,
-                    completion_rate: sprintTasks.length > 0 
-                        ? Math.round((completedTasks.length / sprintTasks.length) * 100) 
-                        : 0,
-                    velocity: Math.round(velocity * 10) / 10
+                    total_tasks: totalTasks,
+                    completed_tasks: completedTasks,
+                    delayed_tasks: delayedTasks,
+                    completion_rate: Math.round((completedTasks / totalTasks) * 100),
+                    velocity: Math.round(completedTasks / 14 * 10) / 10
                 },
                 financials: {
                     planned_cost: Math.round(plannedCost),
@@ -246,8 +239,8 @@ router.get('/sprint-analysis', async (req, res) => {
                     completed: Math.round(completedHours),
                     remaining: Math.round(totalHours - completedHours)
                 }
-            };
-        }));
+            });
+        }
 
         // Calculate overall metrics
         const totalPlannedCost = sprintAnalysis.reduce((sum, s) => sum + s.financials.planned_cost, 0);
@@ -541,6 +534,163 @@ router.get('/team-costs', async (req, res) => {
             }
         });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * GET /api/finance/dashboard-combined
+ * Get comprehensive dashboard data combining mock + real JIRA + GitHub data
+ */
+router.get('/dashboard-combined', async (req, res) => {
+    try {
+        // Get all data sources
+        const users = await User.find({}).lean();
+        const tasks = await Task.find({}).lean();
+        const jiraUsers = await JiraUser.find({}).lean();
+        const contributors = await Contributor.find({}).lean();
+        
+        // Process JIRA tickets
+        let allJiraTickets = [];
+        const jiraUserStats = [];
+        for (const jiraUser of jiraUsers) {
+            const tickets = jiraUser.tickets || [];
+            allJiraTickets = allJiraTickets.concat(tickets.map(t => ({
+                ...t,
+                assignee: jiraUser.name,
+                assignee_email: jiraUser.email
+            })));
+            
+            const completed = tickets.filter(t => 
+                ['done', 'closed', 'resolved'].includes(t.status.toLowerCase())
+            ).length;
+            const inProgress = tickets.filter(t => 
+                ['in progress', 'in review'].includes(t.status.toLowerCase())
+            ).length;
+            
+            jiraUserStats.push({
+                user_id: jiraUser.user_id,
+                name: jiraUser.name,
+                email: jiraUser.email,
+                total_tickets: tickets.length,
+                completed,
+                in_progress: inProgress,
+                pending: tickets.length - completed - inProgress,
+                completion_rate: tickets.length > 0 ? Math.round((completed / tickets.length) * 100) : 0
+            });
+        }
+        
+        // Process GitHub contributors
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        
+        const contributorStats = contributors.map(c => {
+            const commits = c.commits || [];
+            const recentCommits = commits.filter(commit => 
+                new Date(commit.date) >= thirtyDaysAgo
+            );
+            const commitsPerWeek = recentCommits.length / 4.3;
+            
+            return {
+                contributor_id: c.contributor_id,
+                name: c.name,
+                email: c.email,
+                github_username: c.github_username,
+                total_commits: c.total_commits,
+                recent_commits_30d: recentCommits.length,
+                commits_per_week: Math.round(commitsPerWeek * 10) / 10,
+                total_lines_changed: c.total_lines_changed,
+                velocity_score: Math.min(100, Math.round(commitsPerWeek * 20))
+            };
+        });
+        
+        // Calculate aggregated stats
+        const mockStats = {
+            total_tasks: tasks.length,
+            completed: tasks.filter(t => t.status === 'done').length,
+            in_progress: tasks.filter(t => t.status === 'in_progress').length,
+            pending: tasks.filter(t => t.status === 'pending').length
+        };
+        
+        const jiraStats = {
+            total_tickets: allJiraTickets.length,
+            completed: allJiraTickets.filter(t => 
+                ['done', 'closed', 'resolved'].includes(t.status.toLowerCase())
+            ).length,
+            in_progress: allJiraTickets.filter(t => 
+                ['in progress', 'in review'].includes(t.status.toLowerCase())
+            ).length,
+            pending: allJiraTickets.filter(t => 
+                !['done', 'closed', 'resolved', 'in progress', 'in review'].includes(t.status.toLowerCase())
+            ).length
+        };
+        
+        const githubStats = {
+            total_contributors: contributors.length,
+            total_commits: contributors.reduce((sum, c) => sum + (c.total_commits || 0), 0),
+            recent_commits_30d: contributorStats.reduce((sum, c) => sum + c.recent_commits_30d, 0),
+            total_lines_changed: contributors.reduce((sum, c) => sum + (c.total_lines_changed || 0), 0),
+            avg_commits_per_week: Math.round(
+                (contributorStats.reduce((sum, c) => sum + c.commits_per_week, 0) / (contributors.length || 1)) * 10
+            ) / 10
+        };
+        
+        // Combined metrics
+        const combinedStats = {
+            total_items: mockStats.total_tasks + jiraStats.total_tickets,
+            completed: mockStats.completed + jiraStats.completed,
+            in_progress: mockStats.in_progress + jiraStats.in_progress,
+            pending: mockStats.pending + jiraStats.pending,
+            completion_rate: (mockStats.total_tasks + jiraStats.total_tickets) > 0 
+                ? Math.round(((mockStats.completed + jiraStats.completed) / 
+                    (mockStats.total_tasks + jiraStats.total_tickets)) * 100)
+                : 0
+        };
+        
+        // Calculate costs
+        const avgHourlyRate = users.length > 0 
+            ? users.reduce((sum, u) => sum + (u.hourly_rate || 75), 0) / users.length 
+            : 75;
+        const totalEstimatedHours = tasks.reduce((sum, t) => sum + (t.estimated_hours || 0), 0) +
+                                   (allJiraTickets.length * 8);
+        const completedHours = tasks.filter(t => t.status === 'done')
+            .reduce((sum, t) => sum + (t.estimated_hours || 0), 0) +
+            (jiraStats.completed * 8);
+        
+        res.json({
+            summary: {
+                mock_data: mockStats,
+                jira_data: jiraStats,
+                github_data: githubStats,
+                combined: combinedStats
+            },
+            financial: {
+                avg_hourly_rate: Math.round(avgHourlyRate),
+                total_estimated_hours: Math.round(totalEstimatedHours),
+                completed_hours: Math.round(completedHours),
+                total_budgeted_cost: Math.round(totalEstimatedHours * avgHourlyRate),
+                actual_spent_cost: Math.round(completedHours * avgHourlyRate)
+            },
+            team: {
+                mock_users: users.length,
+                jira_users: jiraUsers.length,
+                github_contributors: contributors.length,
+                jira_user_breakdown: jiraUserStats,
+                github_contributor_breakdown: contributorStats.slice(0, 10)
+            },
+            recent_activity: {
+                recent_commits: contributorStats
+                    .filter(c => c.recent_commits_30d > 0)
+                    .sort((a, b) => b.recent_commits_30d - a.recent_commits_30d)
+                    .slice(0, 5),
+                top_performers: jiraUserStats
+                    .filter(u => u.completion_rate > 0)
+                    .sort((a, b) => b.completion_rate - a.completion_rate)
+                    .slice(0, 5)
+            }
+        });
+    } catch (err) {
+        console.error('Error in dashboard-combined:', err);
         res.status(500).json({ error: err.message });
     }
 });

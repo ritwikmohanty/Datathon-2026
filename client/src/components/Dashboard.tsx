@@ -430,78 +430,100 @@ const NavCard = ({ title, description, icon, onClick, gradient, delay = 0, badge
 // LIVE ACTIVITY FEED
 // ============================================
 
+interface JiraTicketActivity {
+  id: string
+  key: string
+  summary: string
+  status: string
+  priority: string
+  assignee: string
+  updated: string
+  created: string
+}
+
 const ActivityFeed = ({ metrics }: { metrics: Metrics | null }) => {
-  const [activities, setActivities] = useState<Array<{
-    id: number
-    type: 'sync' | 'success' | 'error' | 'latency'
-    message: string
-    time: Date
-  }>>([])
+  const [activities, setActivities] = useState<JiraTicketActivity[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!metrics) return
-    
-    const newActivities: typeof activities = []
-    let id = 0
-    
-    Object.entries(metrics.last_sync).forEach(([key, v]) => {
-      if (v.last_sync_at) {
-        newActivities.push({
-          id: id++,
-          type: 'sync',
-          message: `${key} synced`,
-          time: new Date(v.last_sync_at)
-        })
+    const fetchRecentActivity = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`${API}/jira/recent-activity?limit=5`)
+        if (response.ok) {
+          const data = await response.json()
+          setActivities(data.recent || [])
+        }
+      } catch (err) {
+        console.error('Failed to fetch JIRA activity:', err)
+      } finally {
+        setLoading(false)
       }
-    })
-    
-    Object.entries(metrics.by_source_entity).forEach(([key, v]) => {
-      if (v.success_count > 0) {
-        newActivities.push({
-          id: id++,
-          type: 'success',
-          message: `${v.success_count} ${key} operations succeeded`,
-          time: new Date()
-        })
-      }
-      if (v.fail_count > 0) {
-        newActivities.push({
-          id: id++,
-          type: 'error',
-          message: `${v.fail_count} ${key} operations failed`,
-          time: new Date()
-        })
-      }
-    })
-    
-    setActivities(newActivities.slice(0, 5))
-  }, [metrics])
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'sync': return <Database className="w-3 h-3" />
-      case 'success': return <CheckCircle2 className="w-3 h-3 text-success" />
-      case 'error': return <AlertCircle className="w-3 h-3 text-destructive" />
-      case 'latency': return <Timer className="w-3 h-3 text-warning" />
-      default: return <Activity className="w-3 h-3" />
     }
+
+    fetchRecentActivity()
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchRecentActivity, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const getStatusIcon = (status: string) => {
+    const s = status?.toLowerCase() || ''
+    if (s === 'done' || s === 'closed' || s === 'resolved') {
+      return <CheckCircle2 className="w-3 h-3 text-success" />
+    }
+    if (s === 'in progress' || s === 'in review') {
+      return <Timer className="w-3 h-3 text-warning" />
+    }
+    return <AlertCircle className="w-3 h-3 text-muted-foreground" />
+  }
+
+  const getPriorityColor = (priority: string) => {
+    const p = priority?.toLowerCase() || ''
+    if (p === 'highest' || p === 'critical') return 'text-destructive'
+    if (p === 'high') return 'text-orange-500'
+    if (p === 'medium') return 'text-warning'
+    return 'text-muted-foreground'
+  }
+
+  const formatTime = (dateStr: string) => {
+    if (!dateStr) return 'N/A'
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+    
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    return date.toLocaleDateString()
   }
 
   return (
     <div className="space-y-2">
       <AnimatePresence mode="popLayout">
-        {activities.length === 0 ? (
+        {loading ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-sm text-muted-foreground text-center py-8"
           >
-            No recent activity
+            Loading JIRA tickets...
+          </motion.div>
+        ) : activities.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-sm text-muted-foreground text-center py-8"
+          >
+            No recent JIRA tickets
           </motion.div>
         ) : (
-          activities.map((activity, i) => (
+          activities.map((ticket, i) => (
             <motion.div
-              key={activity.id}
+              key={ticket.id || ticket.key || i}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
@@ -509,13 +531,21 @@ const ActivityFeed = ({ metrics }: { metrics: Metrics | null }) => {
               className="flex items-center gap-3 p-3 border border-border hover:border-foreground transition-colors"
             >
               <div className="p-1.5 bg-muted">
-                {getIcon(activity.type)}
+                {getStatusIcon(ticket.status)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm truncate">{activity.message}</p>
-                <p className="text-[10px] font-mono text-muted-foreground">
-                  {activity.time.toLocaleTimeString()}
-                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-primary">{ticket.key}</span>
+                  <span className={`text-[10px] font-mono ${getPriorityColor(ticket.priority)}`}>
+                    {ticket.priority}
+                  </span>
+                </div>
+                <p className="text-sm truncate">{ticket.summary}</p>
+                <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+                  <span>{ticket.assignee}</span>
+                  <span>•</span>
+                  <span>{formatTime(ticket.updated)}</span>
+                </div>
               </div>
             </motion.div>
           ))
@@ -858,7 +888,7 @@ export function Dashboard({ onNavigate, githubConnected, onConnectGitHub }: Dash
             style={{ boxShadow: 'var(--shadow-md)' }}
           >
             <h2 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-4">
-              Recent Activity
+              Recent JIRA Tickets
             </h2>
             <ActivityFeed metrics={metrics} />
           </motion.section>

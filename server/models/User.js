@@ -1,21 +1,26 @@
 const mongoose = require("mongoose");
 
+/**
+ * User Model (Mock Data)
+ * Collection: users_mock
+ */
+
 const UserSchema = new mongoose.Schema(
   {
     // ---- Identity (Unified) ----
-    user_id: { type: String, required: true, unique: true }, // e.g. "github:12345" or "manual:EMP001"
-    employee_id: { type: String, unique: true, sparse: true }, // e.g. "TECH001" (optional for external users)
+    user_id: { type: String }, // e.g. "github:12345" or "manual:EMP001"
+    employee_id: { type: String }, // e.g. "TECH001" (optional for external users)
 
     source: {
       type: String,
       enum: ["GitHub", "GitLab", "Jira", "Slack", "Mock", "Manual"],
-      default: "Manual",
+      default: "Mock",
     },
     source_user_id: { type: String },
 
     name: { type: String },          // internal HR name
     display_name: { type: String },  // external / tool name
-    email: { type: String, unique: true },
+    email: { type: String },
 
     // ---- Org & Role ----
     role: {
@@ -35,7 +40,7 @@ const UserSchema = new mongoose.Schema(
         "Executive",
         "Unassigned",
       ],
-      default: "Unassigned",
+      default: "Developer",
     },
 
     department: { type: String }, // Engineering, HR, Finance
@@ -48,7 +53,7 @@ const UserSchema = new mongoose.Schema(
     },
 
     // ---- Skills & Allocation Intelligence ----
-    years_of_experience: { type: Number },
+    years_of_experience: { type: Number, default: 3 },
     skills: [{ type: String }], // ['React', 'Node', 'MongoDB']
 
     expertise: {
@@ -60,7 +65,7 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       min: 1,
       max: 5,
-      default: 1, // 1=Junior, 5=Principal
+      default: 2, // 1=Junior, 5=Principal
     },
 
     working_style: { type: String }, // async, focused, collaborative
@@ -70,14 +75,14 @@ const UserSchema = new mongoose.Schema(
       default: "Free",
     },
 
-    free_slots_per_week: { type: Number },
+    free_slots_per_week: { type: Number, default: 30 },
     capacity_hours_per_sprint: { type: Number, default: 40 },
 
-    past_performance_score: { type: Number }, // normalized 0–1
+    past_performance_score: { type: Number, default: 0.8 }, // normalized 0–1
 
     // ---- Cost / Finance ----
     salary_band: { type: String },
-    hourly_rate: { type: Number },
+    hourly_rate: { type: Number, default: 75 },
 
     // ---- Integrations ----
     jira_account_id: { type: String },
@@ -87,15 +92,16 @@ const UserSchema = new mongoose.Schema(
   },
   {
     timestamps: true, // createdAt, updatedAt
-    collection: "users",
+    collection: "users_mock",
+    strict: false  // Allow fields not in schema
   }
 );
 
 // ---- Indexes ----
 UserSchema.index({ role: 1 });
 UserSchema.index({ team: 1 });
+UserSchema.index({ name: 1 });
 UserSchema.index({ availability: 1 });
 UserSchema.index({ skills: 1 });
-UserSchema.index({ jira_account_id: 1 });
 
 module.exports = mongoose.model("User", UserSchema);

@@ -191,12 +191,9 @@ function App() {
              {health && (
                 <div className="flex items-center gap-2 text-xs font-mono">
                   <div className={`w-2 h-2 rounded-full ${health.status === 'ok' ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
-                  <span className="text-muted-foreground">SYS: {health.status.toUpperCase()}</span>
+                  <span className="text-muted-foreground">MADE WITH LOVE BY TEAM $WHOAMI</span>
                 </div>
              )}
-            <div className="text-xs text-muted-foreground font-mono">
-              Command Center v2.0
-            </div>
           </div>
         </div>
       </div>
@@ -213,34 +210,6 @@ function App() {
       {/* PM Views */}
       {userRole === 'pm' && activeTab === 'dashboard' && (
         <>
-          {/* Health & Metrics Widget - Integrated cleanly above Dashboard */}
-          {health && metrics && (
-             <div className="max-w-7xl mx-auto px-6 py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="border border-border bg-card p-4 rounded-lg flex items-center justify-between">
-                   <div className="flex items-center gap-2">
-                      <Database className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">DB Status</span>
-                   </div>
-                   <span className={`text-xs font-mono px-2 py-1 rounded ${health.db === 'connected' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                      {health.db || 'Unknown'}
-                   </span>
-                </div>
-                {/* Simplified Metrics Display */}
-                {Object.entries(metrics.by_source_entity).slice(0, 3).map(([key, val]) => (
-                   <div key={key} className="border border-border bg-card p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs font-mono uppercase text-muted-foreground">{key}</span>
-                        {val.last_latency_ms && <span className="text-[10px] text-muted-foreground">{val.last_latency_ms}ms</span>}
-                      </div>
-                      <div className="flex gap-2 text-xs">
-                         <span className="text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3"/> {val.success_count}</span>
-                         <span className="text-red-500 flex items-center gap-1"><XCircle className="w-3 h-3"/> {val.fail_count}</span>
-                      </div>
-                   </div>
-                ))}
-             </div>
-          )}
-          
           <Dashboard
             onNavigate={(tab) => setActiveTab(tab as Tab)}
             githubConnected={githubConnected}

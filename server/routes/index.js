@@ -29,6 +29,7 @@ router.use('/insights', insightsRoutes);
 router.use('/smart-allocate', require('./smartAllocate'));
 router.use('/finance', require('./finance'));
 router.use('/hr', require('./hr'));
+router.use('/jira', require('./jira'));
 
 // Health: include DB check
 router.get('/health', async (req, res) => {

@@ -153,7 +153,8 @@ const calculatePrediction = (
   budgetPercent: number,
   deadlineWeeks: number,
   originalBudget: number,
-  totalHours: number
+  totalHours: number,
+  originalDeadlineWeeks: number
 ): UIDelayPrediction => {
   // Convert to enhanced types
   const enhancedEmployees: EnhancedEmployee[] = [...activeEmployees, ...removedEmployees]
@@ -161,7 +162,7 @@ const calculatePrediction = (
   
   const enhancedTasks: EnhancedTask[] = tasks.map(t => convertToEnhancedTask(t));
   
-  // Create project context
+  // Create project context with current deadline
   const projectContext: ProjectContext = {
     project_id: 'current-project',
     name: 'Current Allocation',
@@ -183,11 +184,14 @@ const calculatePrediction = (
     projectContext
   );
   
-  // Build scenario
+  // Calculate deadline adjustment (positive = extended, negative = shortened)
+  const deadlineAdjustmentWeeks = deadlineWeeks - originalDeadlineWeeks;
+  
+  // Build scenario with actual deadline adjustment
   const scenario = {
     employee_removals: removedEmployees.map(e => e.id),
     budget_adjustment: budgetPercent,
-    deadline_adjustment: 0, // No deadline change in current UI
+    deadline_adjustment: deadlineAdjustmentWeeks,
     scope_change: 100, // No scope change
     external_delay_days: 0
   };
@@ -270,7 +274,8 @@ const DelayPrediction = () => {
         budgetPercent,
         deadlineWeeks,
         originalData.budget,
-        originalData.total_hours
+        originalData.total_hours,
+        originalData.deadline_weeks // Pass original deadline for comparison
       );
       setPrediction(newPrediction);
     }

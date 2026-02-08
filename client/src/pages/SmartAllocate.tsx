@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Home } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import FeatureInput from "@/components/FeatureInput";
 import TimelineGraph from "@/components/TimelineGraph";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
@@ -63,6 +64,7 @@ interface SmartAllocateProps {
 }
 
 const SmartAllocate = ({ onNavigateToDelay, onBack }: SmartAllocateProps) => {
+  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [allocations, setAllocations] = useState<Allocation[]>([]);
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -103,6 +105,13 @@ const SmartAllocate = ({ onNavigateToDelay, onBack }: SmartAllocateProps) => {
       <header className="border-b-2 border-foreground mb-6">
         <div className="max-w-7xl mx-auto py-3 px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 px-3 py-2 border-2 border-foreground hover:bg-foreground hover:text-background transition-colors font-mono text-sm"
+            >
+              <Home className="w-4 h-4" />
+              Dashboard
+            </button>
             <div className="w-10 h-10 bg-foreground flex items-center justify-center">
               <span className="text-background font-mono font-bold text-lg">AI</span>
             </div>
