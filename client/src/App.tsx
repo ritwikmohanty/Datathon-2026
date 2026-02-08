@@ -53,35 +53,9 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center p-6 gap-6">
-      <h1 className="text-2xl font-bold text-foreground">Data Integration Hub</h1>
-
-      {oauthMessage && (
-        <div className="rounded-lg bg-muted px-4 py-2 text-sm text-foreground">
-          {oauthMessage}
-        </div>
-      )}
-
-      {/* Navigation */}
-      <div className="flex gap-2">
-        <Button 
-          variant={activeTab === 'dashboard' ? "default" : "outline"} 
-          onClick={() => setActiveTab('dashboard')}
-        >
-          Dashboard
-        </Button>
-        <Button 
-          variant={activeTab === 'roles' ? "default" : "outline"} 
-          onClick={() => setActiveTab('roles')}
-        >
-          Role Management
-        </Button>
-        <Button 
-          variant={activeTab === 'graph' ? "default" : "outline"} 
-          onClick={() => setActiveTab('graph')}
-        >
-          Knowledge Graph
-        </Button>
+    <div className="h-[70vh] w-full flex overflow-hidden rounded-xl border bg-muted">
+      <div className="flex-1 relative">
+        <AllocationGraph allocation={allocation} />
       </div>
 
       {activeTab === 'dashboard' && (
@@ -170,5 +144,3 @@ function App() {
     </div>
   )
 }
-
-export default App
