@@ -26,9 +26,9 @@ class SarvamService:
         self, 
         text: str, 
         language: str = 'hi-IN',  # Hindi by default
-        speaker: str = 'kavya',    # Valid female Indian voice
+        speaker: str = 'rahul',    # Fast male Indian voice
         pitch: float = 0,
-        pace: float = 1.0,
+        pace: float = 1.3,  # Faster speech (1.3x speed)
         loudness: float = 1.0
     ) -> Optional[bytes]:
         """
