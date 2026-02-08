@@ -25,6 +25,7 @@ router.use('/roles', rolesRoutes);
 router.use('/graph', graphRoutes);
 router.use('/webhooks', require('./webhooks'));
 router.use('/insights', require('./insights'));
+router.use('/smart-allocate', require('./smartAllocate'));
 
 // Health: include DB check
 router.get('/health', async (req, res) => {

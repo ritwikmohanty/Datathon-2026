@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react"
+import { MemoryRouter } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { RoleManagement } from "@/components/RoleManagement"
 import { KnowledgeGraph3D } from "@/components/KnowledgeGraph3D"
+import SmartAllocate from "@/pages/SmartAllocate"
+import DelayPrediction from "@/pages/DelayPrediction"
 
 const API = "/api"
 
@@ -11,7 +14,30 @@ type Metrics = {
   last_sync: Record<string, { last_sync_at: string | null; last_cursor: string | null }>
 }
 
-type Tab = 'dashboard' | 'roles' | 'graph'
+// Allocation data type for passing between SmartAllocate and DelayPrediction
+interface AllocationData {
+  tasks: {
+    id: string;
+    title: string;
+    required_skills: string[];
+    estimated_hours: number;
+    assigned_employee_ids: string[];
+    status: string;
+  }[];
+  employees: {
+    id: string;
+    name: string;
+    role: string;
+    tech_stack: string[];
+    hourly_rate: number;
+    workload: number;
+  }[];
+  deadline_weeks: number;
+  budget: number;
+  total_hours: number;
+}
+
+type Tab = 'dashboard' | 'roles' | 'graph' | 'smart-allocate' | 'delay-prediction'
 
 function App() {
   const [health, setHealth] = useState<Health | null>(null)
@@ -19,6 +45,7 @@ function App() {
   const [githubConnected, setGithubConnected] = useState<boolean | null>(null)
   const [oauthMessage, setOauthMessage] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('dashboard')
+  const [allocationData, setAllocationData] = useState<AllocationData | null>(null)
 
   useEffect(() => {
     fetch(`${API}/health`)
@@ -63,7 +90,7 @@ function App() {
       )}
 
       {/* Navigation */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap justify-center">
         <Button 
           variant={activeTab === 'dashboard' ? "default" : "outline"} 
           onClick={() => setActiveTab('dashboard')}
@@ -81,6 +108,18 @@ function App() {
           onClick={() => setActiveTab('graph')}
         >
           Knowledge Graph
+        </Button>
+        <Button 
+          variant={activeTab === 'smart-allocate' ? "default" : "outline"} 
+          onClick={() => setActiveTab('smart-allocate')}
+        >
+          Smart Allocate
+        </Button>
+        <Button 
+          variant={activeTab === 'delay-prediction' ? "default" : "outline"} 
+          onClick={() => setActiveTab('delay-prediction')}
+        >
+          Delay Prediction
         </Button>
       </div>
 
@@ -165,6 +204,30 @@ function App() {
           >
             ← Back to Dashboard
           </button>
+        </div>
+      )}
+
+      {activeTab === 'smart-allocate' && (
+        <div className="w-full">
+          <MemoryRouter>
+            <SmartAllocate 
+              onNavigateToDelay={(data) => {
+                setAllocationData(data);
+                setActiveTab('delay-prediction');
+              }}
+            />
+          </MemoryRouter>
+        </div>
+      )}
+
+      {activeTab === 'delay-prediction' && (
+        <div className="w-full">
+          <MemoryRouter initialEntries={[{ pathname: '/delay-prediction', state: { allocation: allocationData } }]}>
+            <DelayPrediction 
+              onBack={() => setActiveTab('smart-allocate')}
+              allocationDataProp={allocationData}
+            />
+          </MemoryRouter>
         </div>
       )}
     </div>
