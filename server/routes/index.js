@@ -42,7 +42,7 @@ router.get('/metrics', async (req, res) => {
     const syncStates = await SyncState.find({}).lean();
     const lastSyncBySourceEntity = {};
     syncStates.forEach((s) => {
-      lastSyncBySourceEntity[\`\${s.source}:\${s.entity}\`] = {
+      lastSyncBySourceEntity[`${s.source}:${s.entity}`] = {
         last_sync_at: s.last_sync_at,
         last_cursor: s.last_cursor,
       };
