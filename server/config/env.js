@@ -1,6 +1,8 @@
 module.exports = {
   MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/mern-app',
   PORT: process.env.PORT || 8000,
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
   NODE_ENV: process.env.NODE_ENV || 'development',
   // GitHub OAuth
   GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,

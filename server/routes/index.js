@@ -4,6 +4,13 @@ const router = express.Router();
 const { getMetrics } = require('../utils/metricsStore');
 const SyncState = require('../models/SyncState');
 
+// Import route files
+const taskRoutes = require('./tasks');
+const transcriptRoutes = require('./transcript');
+
+// Use routes
+router.use('/tasks', taskRoutes);
+router.use('/transcript', transcriptRoutes);
 const oauthRoutes = require('./oauth');
 const fetchRoutes = require('./fetch');
 const syncRoutes = require('./sync');
