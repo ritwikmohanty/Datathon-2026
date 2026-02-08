@@ -3,5 +3,5 @@ flask-cors==4.0.0
 pymongo==4.6.1
 python-dotenv==1.0.0
 requests==2.31.0
-google-generativeai==0.3.2
+groq>=0.37.0
 pydub==0.25.1
