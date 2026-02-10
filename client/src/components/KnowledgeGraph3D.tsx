@@ -22,7 +22,10 @@ import {
   EyeOff,
   Info,
   ArrowLeft,
-  Link2
+  Link2,
+  Menu,
+  Filter,
+  Lightbulb
 } from "lucide-react"
 
 const API = import.meta.env.VITE_API_URL || "/api"
@@ -767,35 +770,36 @@ export function KnowledgeGraph3D({ onBack }: KnowledgeGraph3DProps) {
 
   return (
     <div className="w-full h-screen bg-background flex flex-col overflow-hidden">
-      {/* Header */}
+      {/* Header - Mobile Responsive */}
       <motion.header 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="shrink-0 border-b-2 border-foreground bg-background z-10"
       >
-        <div className="px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-4">
             {onBack && (
               <motion.button
                 whileHover={{ x: -2 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onBack}
-                className="flex items-center gap-2 px-4 py-2 border-2 border-foreground bg-foreground text-background font-mono text-xs uppercase tracking-wider hover:opacity-90 transition-all"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 border-2 border-foreground bg-foreground text-background font-mono text-xs uppercase tracking-wider hover:opacity-90 transition-all"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Dashboard
+                <span className="hidden sm:inline">Dashboard</span>
               </motion.button>
             )}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-foreground flex items-center justify-center">
-                <Layers className="w-5 h-5 text-background" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-foreground flex items-center justify-center">
+                <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-background" />
               </div>
-              <div>
+              <div className="hidden sm:block">
                 <h1 className="font-semibold tracking-tight">Knowledge Graph</h1>
                 <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
                   Interactive Data Visualization
                 </p>
               </div>
+              <h1 className="sm:hidden font-semibold text-sm">Graph</h1>
             </div>
             
             {status && (
@@ -803,11 +807,9 @@ export function KnowledgeGraph3D({ onBack }: KnowledgeGraph3DProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="flex items-center gap-2 ml-4 pl-4 border-l border-border"
+                className="hidden md:flex items-center gap-2 ml-4 pl-4 border-l border-border"
               >
-                <div className={`w-2 h-2 rounded-full ${
-                  status.status === 'connected' ? 'bg-success animate-pulse' : 'bg-destructive'
-                }`} />
+                <div className={`w-2 h-2 rounded-full ${status.status === 'connected' ? 'bg-success animate-pulse' : 'bg-destructive'}`} />
                 <span className="text-xs font-mono text-muted-foreground">
                   {status.stats?.nodeCount || 0} nodes • {status.stats?.relCount || 0} edges
                 </span>
@@ -815,41 +817,40 @@ export function KnowledgeGraph3D({ onBack }: KnowledgeGraph3DProps) {
             )}
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
+            {/* Mobile Filter Toggle */}
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2 border-2 font-mono text-xs uppercase tracking-wider transition-all ${
-                showFilters ? 'border-foreground bg-foreground text-background' : 'border-border hover:border-foreground'
-              }`}
+              className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 border-2 font-mono text-xs uppercase tracking-wider transition-all ${showFilters ? 'border-foreground bg-foreground text-background' : 'border-border hover:border-foreground'}`}
             >
-              {showFilters ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              Filters
+              <Filter className="w-4 h-4 sm:hidden" />
+              {showFilters ? <EyeOff className="w-4 h-4 hidden sm:block" /> : <Eye className="w-4 h-4 hidden sm:block" />}
+              <span className="hidden sm:inline">Filters</span>
             </motion.button>
             
+            {/* Mobile Insights Toggle */}
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => {
                 const newState = !showInsights
                 setShowInsights(newState)
-                // Re-fetch insights when opening the panel
-                if (newState) {
-                  fetchInsights()
-                }
+                if (newState) fetchInsights()
               }}
               disabled={loadingInsights}
-              className={`flex items-center gap-2 px-4 py-2 border-2 font-mono text-xs uppercase tracking-wider transition-all ${
-                showInsights ? 'border-foreground bg-foreground text-background' : 'border-border hover:border-foreground'
-              } ${loadingInsights ? 'opacity-70' : ''}`}
+              className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 border-2 font-mono text-xs uppercase tracking-wider transition-all ${showInsights ? 'border-foreground bg-foreground text-background' : 'border-border hover:border-foreground'} ${loadingInsights ? 'opacity-70' : ''}`}
             >
               {loadingInsights ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
               ) : (
-                <Info className="w-4 h-4" />
+                <>
+                  <Lightbulb className="w-4 h-4 sm:hidden" />
+                  <Info className="w-4 h-4 hidden sm:block" />
+                </>
               )}
-              {loadingInsights ? 'Loading...' : 'Insights'}
+              <span className="hidden sm:inline">{loadingInsights ? 'Loading...' : 'Insights'}</span>
             </motion.button>
             
             <motion.button
@@ -857,26 +858,42 @@ export function KnowledgeGraph3D({ onBack }: KnowledgeGraph3DProps) {
               whileTap={{ scale: 0.98 }}
               onClick={syncGraph}
               disabled={syncing}
-              className="flex items-center gap-2 px-4 py-2 border-2 border-foreground bg-foreground text-background font-mono text-xs uppercase tracking-wider hover:opacity-90 disabled:opacity-50 transition-all"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 border-2 border-foreground bg-foreground text-background font-mono text-xs uppercase tracking-wider hover:opacity-90 disabled:opacity-50 transition-all"
             >
               <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-              {syncing ? 'Syncing...' : 'Sync'}
+              <span className="hidden sm:inline">{syncing ? 'Syncing...' : 'Sync'}</span>
             </motion.button>
           </div>
         </div>
       </motion.header>
 
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Sidebar - Filters */}
+        {/* Left Sidebar - Filters (Mobile: Overlay, Desktop: Side Panel) */}
         <AnimatePresence>
           {showFilters && (
-            <motion.aside
-              initial={{ x: -320, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -320, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="w-80 shrink-0 border-r-2 border-border bg-background p-4 overflow-y-auto z-10"
-            >
+            <>
+              {/* Mobile Overlay Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowFilters(false)}
+                className="md:hidden fixed inset-0 bg-black/50 z-20"
+              />
+              <motion.aside
+                initial={{ x: -320, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -320, opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="fixed md:relative left-0 top-0 md:top-auto h-full w-72 sm:w-80 shrink-0 border-r-2 border-border bg-background p-4 overflow-y-auto z-30 md:z-10"
+              >
+                {/* Close button for mobile */}
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="md:hidden absolute top-3 right-3 p-2 border border-border hover:border-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               {/* Search */}
               <motion.div {...slideUp} transition={{ delay: 0.1 }} className="mb-6">
                 <label className="block text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
@@ -1079,6 +1096,7 @@ export function KnowledgeGraph3D({ onBack }: KnowledgeGraph3DProps) {
                 </div>
               </motion.div>
             </motion.aside>
+            </>
           )}
         </AnimatePresence>
 
@@ -1103,50 +1121,66 @@ export function KnowledgeGraph3D({ onBack }: KnowledgeGraph3DProps) {
             controlType="orbit"
           />
 
-          {/* Stats Bar */}
+          {/* Stats Bar - Mobile Responsive */}
           <motion.div 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="absolute bottom-4 left-4 flex items-center gap-4 bg-background/95 backdrop-blur-sm border-2 border-border px-4 py-2"
+            className="absolute bottom-12 sm:bottom-4 left-2 sm:left-4 flex items-center gap-2 sm:gap-4 bg-background/95 backdrop-blur-sm border-2 border-border px-2 sm:px-4 py-1.5 sm:py-2 text-xs"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <div className="w-2 h-2 bg-success rounded-full" />
-              <span className="text-xs font-mono">
-                <span className="text-muted-foreground">Nodes:</span>{' '}
+              <span className="font-mono">
+                <span className="text-muted-foreground hidden sm:inline">Nodes:</span>{' '}
                 <span className="font-bold">{filteredData.nodes.length}</span>
               </span>
             </div>
-            <div className="w-px h-4 bg-border" />
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono">
-                <span className="text-muted-foreground">Edges:</span>{' '}
+            <div className="w-px h-3 sm:h-4 bg-border" />
+            <div className="flex items-center gap-1 sm:gap-2">
+              <span className="font-mono">
+                <span className="text-muted-foreground hidden sm:inline">Edges:</span>{' '}
                 <span className="font-bold">{filteredData.links.length}</span>
               </span>
             </div>
           </motion.div>
 
-          {/* Instructions */}
+          {/* Instructions - Hidden on mobile */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="absolute bottom-4 right-4 text-[10px] font-mono text-muted-foreground uppercase tracking-wider"
+            className="absolute bottom-12 sm:bottom-4 right-2 sm:right-4 text-[9px] sm:text-[10px] font-mono text-muted-foreground uppercase tracking-wider hidden sm:block"
           >
             Click: Select • Drag: Rotate • Scroll: Zoom
           </motion.div>
         </main>
 
-        {/* Right Sidebar - Insights */}
+        {/* Right Sidebar - Insights (Mobile: Overlay, Desktop: Side Panel) */}
         <AnimatePresence>
           {showInsights && (
-            <motion.aside
-              initial={{ x: 320, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 320, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="w-80 shrink-0 border-l-2 border-border bg-background p-4 overflow-y-auto z-10"
-            >
+            <>
+              {/* Mobile Overlay Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowInsights(false)}
+                className="md:hidden fixed inset-0 bg-black/50 z-20"
+              />
+              <motion.aside
+                initial={{ x: 320, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: 320, opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="fixed md:relative right-0 top-0 md:top-auto h-full w-72 sm:w-80 shrink-0 border-l-2 border-border bg-background p-4 overflow-y-auto z-30 md:z-10"
+              >
+                {/* Close button for mobile */}
+                <button
+                  onClick={() => setShowInsights(false)}
+                  className="md:hidden absolute top-3 right-3 p-2 border border-border hover:border-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               {loadingInsights ? (
                 <div className="flex flex-col items-center justify-center h-full py-12">
                   <motion.div 
@@ -1325,17 +1359,18 @@ export function KnowledgeGraph3D({ onBack }: KnowledgeGraph3DProps) {
                 </>
               )}
             </motion.aside>
+            </>
           )}
         </AnimatePresence>
 
-        {/* Selected Node Panel */}
+        {/* Selected Node Panel - Mobile Responsive */}
         <AnimatePresence>
           {selectedNode && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="absolute top-4 right-4 w-80 bg-background border-2 border-foreground shadow-xl z-20 max-h-[80vh] overflow-hidden flex flex-col"
+              className="absolute top-2 sm:top-4 right-2 sm:right-4 left-2 sm:left-auto w-auto sm:w-80 bg-background border-2 border-foreground shadow-xl z-20 max-h-[60vh] sm:max-h-[80vh] overflow-hidden flex flex-col"
             >
               <div className="p-4 border-b-2 border-border flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">

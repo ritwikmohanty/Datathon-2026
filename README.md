@@ -182,6 +182,8 @@ An end-to-end AI-powered platform that bridges the gap between low-level technic
    ├─ Voice Assistant (Flask + Sarvam)
    └─ Real-time Notifications (WebSockets)
 
+```
+
 ## Key Features
 
 ✅ **Real-Time Sync**: Daily automated GitHub/Jira ingestion  

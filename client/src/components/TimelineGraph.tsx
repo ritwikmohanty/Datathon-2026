@@ -411,10 +411,10 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
 
   return (
     <div className="w-full">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold tracking-tight">Resource Allocation Timeline</h2>
-        <div className="flex items-center gap-4">
+      {/* Header - Mobile Responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-2">
+        <h2 className="text-lg sm:text-xl font-semibold tracking-tight">Resource Allocation Timeline</h2>
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           {isLoadingEmployees && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -446,8 +446,8 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
         </div>
       </div>
 
-      {/* Graph Container */}
-      <div className="relative border-2 border-foreground bg-card p-6 min-h-[600px]">
+      {/* Graph Container - Mobile Responsive */}
+      <div className="relative border-2 border-foreground bg-card p-3 sm:p-6 min-h-[400px] sm:min-h-[600px]">
         {/* Grid background */}
         <div 
           className="absolute inset-0 opacity-5"
@@ -460,28 +460,28 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
           }}
         />
 
-        {/* Main Feature Name - Centered at Top */}
+        {/* Main Feature Name - Centered at Top - Mobile Responsive */}
         {featureData && (isProcessing || tasks.length > 0) && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative z-10 text-center mb-8"
+            className="relative z-10 text-center mb-4 sm:mb-8"
           >
             <motion.div
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 200 }}
-              className="inline-block px-8 py-4 bg-foreground text-background border-2 border-foreground"
+              className="inline-block px-4 sm:px-8 py-3 sm:py-4 bg-foreground text-background border-2 border-foreground w-full sm:w-auto"
             >
-              <span className="text-xs font-mono uppercase tracking-widest opacity-70 block mb-1">
+              <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest opacity-70 block mb-1">
                 Feature Request
               </span>
-              <h3 className="text-xl font-bold font-mono">{featureData.feature}</h3>
-              <div className="flex items-center justify-center gap-4 mt-2 text-xs opacity-70">
+              <h3 className="text-base sm:text-xl font-bold font-mono">{featureData.feature}</h3>
+              <div className="flex items-center justify-center gap-2 sm:gap-4 mt-2 text-[10px] sm:text-xs opacity-70 flex-wrap">
                 {featureData.budget !== null && (
                   <>
                     <span>Budget: ${featureData.budget.toLocaleString()}</span>
-                    <span>•</span>
+                    <span className="hidden sm:inline">•</span>
                   </>
                 )}
                 <span>Deadline: {featureData.deadlineWeeks} weeks</span>
@@ -490,10 +490,10 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
           </motion.div>
         )}
 
-        <div className="relative z-10 grid grid-cols-12 gap-6">
-          {/* Tasks Column */}
-          <div className="col-span-4 space-y-4">
-            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-4">
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
+          {/* Tasks Column - Full width on mobile */}
+          <div className="md:col-span-4 space-y-3 sm:space-y-4">
+            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2 sm:mb-4">
               Task Breakdown
             </h3>
             <AnimatePresence>
@@ -620,8 +620,8 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
             </AnimatePresence>
           </div>
 
-          {/* Connection Lines (Visual only) */}
-          <div className="col-span-2 flex items-center justify-center">
+          {/* Connection Lines (Visual only) - Hidden on mobile */}
+          <div className="hidden md:col-span-2 md:flex items-center justify-center">
             <AnimatePresence>
               {connections.length > 0 && (
                 <motion.div
@@ -650,12 +650,12 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
             </AnimatePresence>
           </div>
 
-          {/* Employees Column */}
-          <div className="col-span-6">
-            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-4">
+          {/* Employees Column - Full width on mobile */}
+          <div className="md:col-span-6">
+            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2 sm:mb-4">
               Available Resources
             </h3>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <AnimatePresence mode="popLayout">
                 {employees.map((employee, idx) => (
                   <EmployeeCard
@@ -682,78 +682,78 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
           </div>
         </div>
 
-        {/* LLM Status */}
+        {/* LLM Status - Mobile Responsive */}
         {llmStatus && isProcessing && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute bottom-4 left-4 right-4 p-3 bg-accent/10 border border-accent"
+            className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 right-2 sm:right-4 p-2 sm:p-3 bg-accent/10 border border-accent"
           >
-            <p className="text-xs font-mono text-accent">{llmStatus}</p>
+            <p className="text-[10px] sm:text-xs font-mono text-accent">{llmStatus}</p>
           </motion.div>
         )}
 
-        {/* Empty state */}
+        {/* Empty state - Mobile Responsive */}
         {!isProcessing && currentTaskIndex === -1 && tasks.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0 flex items-center justify-center p-4"
           >
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
-                <span className="text-2xl text-muted-foreground/50">⚡</span>
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                <span className="text-xl sm:text-2xl text-muted-foreground/50">⚡</span>
               </div>
-              <p className="text-muted-foreground font-mono text-sm">
+              <p className="text-muted-foreground font-mono text-xs sm:text-sm">
                 Submit a feature request to begin AI allocation
               </p>
             </div>
           </motion.div>
         )}
 
-        {/* Final Allocation Summary - Centered Hierarchical View */}
+        {/* Final Allocation Summary - Centered Hierarchical View - Mobile Responsive */}
         {!isProcessing && tasks.length > 0 && tasks.every(t => t.status === "assigned" || t.status === "unassigned") && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="relative z-10 mt-12 pt-8 border-t-2 border-success/30"
+            className="relative z-10 mt-6 sm:mt-12 pt-4 sm:pt-8 border-t-2 border-success/30"
           >
             {/* Section Header */}
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="text-center mb-8"
+              className="text-center mb-4 sm:mb-8"
             >
-              <span className="inline-block px-4 py-2 bg-success/10 border border-success text-success text-xs font-mono uppercase tracking-widest">
+              <span className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 bg-success/10 border border-success text-success text-[10px] sm:text-xs font-mono uppercase tracking-widest">
                 ✓ Allocation Complete
               </span>
             </motion.div>
             
-            {/* Main Feature/Sprint Name - Top Center */}
+            {/* Main Feature/Sprint Name - Top Center - Mobile Responsive */}
             <div className="flex flex-col items-center">
               <motion.div
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-                className="relative mb-12"
+                className="relative mb-6 sm:mb-12 w-full sm:w-auto"
               >
-                <div className="px-10 py-6 bg-foreground text-background border-2 border-foreground text-center min-w-[280px]">
-                  <span className="text-[10px] font-mono uppercase tracking-widest opacity-60 block mb-1">
+                <div className="px-4 sm:px-10 py-4 sm:py-6 bg-foreground text-background border-2 border-foreground text-center sm:min-w-[280px]">
+                  <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest opacity-60 block mb-1">
                     Feature / Sprint
                   </span>
-                  <span className="font-bold text-2xl block">{featureData?.feature}</span>
+                  <span className="font-bold text-lg sm:text-2xl block">{featureData?.feature}</span>
                   {featureData && (
-                    <div className="flex items-center justify-center gap-3 mt-3 text-xs opacity-60">
+                    <div className="flex items-center justify-center gap-2 sm:gap-3 mt-2 sm:mt-3 text-[10px] sm:text-xs opacity-60 flex-wrap">
                       {featureData.budget !== null && (
                         <>
                           <span>💰 ${featureData.budget.toLocaleString()}</span>
-                          <span>•</span>
+                          <span className="hidden sm:inline">•</span>
                         </>
                       )}
                       <span>📅 {featureData.deadlineWeeks} weeks</span>
-                      <span>•</span>
+                      <span className="hidden sm:inline">•</span>
                       <span>📋 {tasks.length} tasks</span>
                     </div>
                   )}
@@ -778,20 +778,20 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
               </motion.div>
 
               {/* Tasks with Assigned Employees */}
-              <div className="w-full max-w-5xl">
+              <div className="w-full max-w-5xl px-2 sm:px-0">
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.8 }}
-                  className="text-center mb-6"
+                  className="text-center mb-4 sm:mb-6"
                 >
-                  <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+                  <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted-foreground">
                     Task Breakdown & Assignments
                   </span>
                 </motion.div>
                 
-                {/* Tasks Grid */}
-                <div className="flex flex-wrap justify-center gap-6">
+                {/* Tasks Grid - Mobile Responsive */}
+                <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-4 sm:gap-6">
                   {tasks.map((task, idx) => {
                     const assignedEmployees = task.assignedEmployees || (task.assignedEmployee ? [task.assignedEmployee] : []);
                     const isUnassigned = task.status === "unassigned" || assignedEmployees.length === 0;
@@ -807,8 +807,8 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
                           stiffness: 150,
                           damping: 15
                         }}
-                        className="flex flex-col items-center"
-                        style={{ width: Math.max(200, Math.max(1, assignedEmployees.length) * 120) }}
+                        className="flex flex-col items-center w-full sm:w-auto"
+                        style={{ minWidth: 180, maxWidth: '100%' }}
                       >
                         {/* Task Card */}
                         <motion.div
@@ -965,72 +965,72 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
                 </div>
               </div>
               
-              {/* Summary Stats */}
+              {/* Summary Stats - Mobile Responsive */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.5 + tasks.length * 0.15 }}
-                className="mt-10 flex items-center justify-center gap-8 pt-6 border-t border-border"
+                className="mt-6 sm:mt-10 flex flex-wrap items-center justify-center gap-4 sm:gap-8 pt-4 sm:pt-6 border-t border-border"
               >
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-success">
+                  <span className="text-xl sm:text-2xl font-bold text-success">
                     {tasks.filter(t => t.status === "assigned").length}
                   </span>
-                  <span className="block text-xs font-mono text-muted-foreground uppercase mt-1">
+                  <span className="block text-[10px] sm:text-xs font-mono text-muted-foreground uppercase mt-1">
                     Tasks Assigned
                   </span>
                 </div>
                 {tasks.filter(t => t.status === "unassigned").length > 0 && (
                   <>
-                    <div className="w-px h-10 bg-border" />
+                    <div className="w-px h-8 sm:h-10 bg-border hidden sm:block" />
                     <div className="text-center">
-                      <span className="text-2xl font-bold text-destructive">
+                      <span className="text-xl sm:text-2xl font-bold text-destructive">
                         {tasks.filter(t => t.status === "unassigned").length}
                       </span>
-                      <span className="block text-xs font-mono text-muted-foreground uppercase mt-1">
+                      <span className="block text-[10px] sm:text-xs font-mono text-muted-foreground uppercase mt-1">
                         Unassigned
                       </span>
                     </div>
                   </>
                 )}
-                <div className="w-px h-10 bg-border" />
+                <div className="w-px h-8 sm:h-10 bg-border hidden sm:block" />
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-success">
+                  <span className="text-xl sm:text-2xl font-bold text-success">
                     {new Set(tasks.flatMap(t => 
                       (t.assignedEmployees || (t.assignedEmployee ? [t.assignedEmployee] : []))
                         .map(e => e.id)
                     )).size}
                   </span>
-                  <span className="block text-xs font-mono text-muted-foreground uppercase mt-1">
+                  <span className="block text-[10px] sm:text-xs font-mono text-muted-foreground uppercase mt-1">
                     Team Members
                   </span>
                 </div>
-                <div className="w-px h-10 bg-border" />
+                <div className="w-px h-8 sm:h-10 bg-border hidden sm:block" />
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-success">
+                  <span className="text-xl sm:text-2xl font-bold text-success">
                     {tasks.reduce((sum, t) => sum + t.estimatedHours, 0)}h
                   </span>
-                  <span className="block text-xs font-mono text-muted-foreground uppercase mt-1">
+                  <span className="block text-[10px] sm:text-xs font-mono text-muted-foreground uppercase mt-1">
                     Total Hours
                   </span>
                 </div>
-                <div className="w-px h-10 bg-border" />
+                <div className="w-px h-8 sm:h-10 bg-border hidden sm:block" />
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-success">
+                  <span className="text-xl sm:text-2xl font-bold text-success">
                     {tasks.reduce((sum, t) => sum + (t.assignedEmployees?.length || (t.assignedEmployee ? 1 : 0)), 0)}
                   </span>
-                  <span className="block text-xs font-mono text-muted-foreground uppercase mt-1">
+                  <span className="block text-[10px] sm:text-xs font-mono text-muted-foreground uppercase mt-1">
                     Assignments
                   </span>
                 </div>
               </motion.div>
               
-              {/* Simulate Delays Button */}
+              {/* Simulate Delays Button - Mobile Responsive */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.8 + tasks.length * 0.15 }}
-                className="mt-8 flex justify-center"
+                className="mt-6 sm:mt-8 flex justify-center px-2"
               >
                 <motion.button
                   whileHover={{ scale: 1.01 }}
@@ -1066,7 +1066,7 @@ const TimelineGraph = ({ isProcessing, onAllocationComplete, featureData, onNavi
                       navigate('/delay-prediction', { state: { allocation: allocationData } });
                     }
                   }}
-                  className="px-8 py-3.5 bg-foreground text-background font-mono uppercase tracking-widest text-sm font-semibold flex items-center justify-center gap-2.5 hover:bg-accent transition-colors"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-foreground text-background font-mono uppercase tracking-widest text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 sm:gap-2.5 hover:bg-accent transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/>

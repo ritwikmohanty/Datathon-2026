@@ -372,7 +372,7 @@ const NavCard = ({ title, description, icon, onClick, gradient, delay = 0, badge
     whileHover={{ scale: 1.02, y: -4 }}
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
-    className="group relative w-full text-left border-2 border-foreground bg-card p-6 overflow-hidden"
+    className="group relative w-full text-left border-2 border-foreground bg-card p-4 sm:p-6 overflow-hidden"
     style={{ boxShadow: 'var(--shadow-md)' }}
   >
     {/* Animated gradient background */}
@@ -397,9 +397,9 @@ const NavCard = ({ title, description, icon, onClick, gradient, delay = 0, badge
     />
     
     <div className="relative z-10">
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-3 sm:mb-4">
         <motion.div 
-          className="p-3 bg-foreground text-background"
+          className="p-2 sm:p-3 bg-foreground text-background"
           whileHover={{ rotate: [0, -10, 10, 0] }}
           transition={{ duration: 0.5 }}
         >
@@ -705,47 +705,53 @@ export function Dashboard({ onNavigate, githubConnected, onConnectGitHub }: Dash
         ))}
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto p-6 space-y-8">
+      <div className="relative z-10 max-w-7xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
         {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b-2 border-foreground pb-6"
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <motion.div 
-              className="w-14 h-14 bg-foreground flex items-center justify-center"
+              className="w-10 h-10 sm:w-14 sm:h-14 bg-foreground flex items-center justify-center"
               animate={{ rotate: [0, 5, -5, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Layers className="w-7 h-7 text-background" />
+              <Layers className="w-5 h-5 sm:w-7 sm:h-7 text-background" />
             </motion.div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Command Center</h1>
-              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Command Center</h1>
+              <p className="text-[9px] sm:text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
                 Business Intelligence Dashboard
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className="text-right">
               <motion.p 
-                className="text-2xl font-mono font-bold"
+                className="text-lg sm:text-2xl font-mono font-bold"
                 key={currentTime.toLocaleTimeString()}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
                 {currentTime.toLocaleTimeString()}
               </motion.p>
-              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+              <p className="text-[9px] sm:text-[10px] font-mono text-muted-foreground uppercase tracking-wider hidden sm:block">
                 {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
               </p>
+              <p className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider sm:hidden">
+                {currentTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </p>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 border-2 border-foreground">
+            <div className="flex items-center gap-2 px-2 sm:px-4 py-2 border-2 border-foreground">
               <LivePulse active={health?.status === 'ok'} />
-              <span className="text-xs font-mono uppercase">
+              <span className="text-xs font-mono uppercase hidden sm:inline">
                 {health?.status === 'ok' ? 'All Systems Operational' : 'System Issues'}
+              </span>
+              <span className="text-xs font-mono uppercase sm:hidden">
+                {health?.status === 'ok' ? 'Online' : 'Offline'}
               </span>
             </div>
           </div>
@@ -864,10 +870,10 @@ export function Dashboard({ onNavigate, githubConnected, onConnectGitHub }: Dash
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            className="border-2 border-foreground p-5"
+            className="border-2 border-foreground p-3 sm:p-5"
             style={{ boxShadow: 'var(--shadow-md)' }}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
               <h2 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
                 System Status
               </h2>
@@ -894,10 +900,10 @@ export function Dashboard({ onNavigate, githubConnected, onConnectGitHub }: Dash
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0 }}
-            className="border-2 border-foreground p-5"
+            className="border-2 border-foreground p-3 sm:p-5"
             style={{ boxShadow: 'var(--shadow-md)' }}
           >
-            <h2 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-4">
+            <h2 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3 sm:mb-4">
               Recent JIRA Tickets
             </h2>
             <ActivityFeed metrics={metrics} />
@@ -908,13 +914,13 @@ export function Dashboard({ onNavigate, githubConnected, onConnectGitHub }: Dash
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.1 }}
-            className="border-2 border-foreground p-5"
+            className="border-2 border-foreground p-3 sm:p-5"
             style={{ boxShadow: 'var(--shadow-md)' }}
           >
-            <h2 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-4">
+            <h2 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3 sm:mb-4">
               Performance (Real Data)
             </h2>
-            <div className="flex items-center justify-around py-4">
+            <div className="flex items-center justify-around py-2 sm:py-4 flex-wrap gap-4">
               <div className="text-center">
                 <ProgressRing progress={stats.completionRate} color="hsl(var(--success))" />
                 <p className="text-[10px] font-mono text-muted-foreground mt-2 uppercase">Completion</p>

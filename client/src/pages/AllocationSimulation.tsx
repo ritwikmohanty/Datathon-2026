@@ -221,6 +221,7 @@ export default function AllocationSimulation({
   const [jiraSyncing, setJiraSyncing] = useState(false);
   const [jiraSyncComplete, setJiraSyncComplete] = useState(false);
   const [jiraSyncResults, setJiraSyncResults] = useState<any>(null);
+  const [showMobileTickets, setShowMobileTickets] = useState(false);
 
   // Build graph data from allocation
   const { allNodes, allEdges, teams } = useMemo(() => {
@@ -532,19 +533,19 @@ export default function AllocationSimulation({
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b border-border p-4 flex items-center justify-between bg-card">
-        <div className="flex items-center gap-4">
+      <div className="border-b border-border p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-card">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Button variant="outline" size="sm" onClick={onBack}>
-            ← Back
+            ← <span className="hidden sm:inline">Back</span>
           </Button>
           <div>
-            <h1 className="text-lg font-semibold">Allocation Graph Simulation</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-base sm:text-lg font-semibold">Allocation Graph</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
               Visualizing team assignments and JIRA ticket creation
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           {/* Status indicator */}
           <div className="flex items-center gap-2">
             <motion.div
@@ -718,6 +719,166 @@ export default function AllocationSimulation({
           </div>
         </div>
 
+        {/* Mobile Tickets Toggle Button - Only visible on mobile when tickets exist */}
+        {(phase === "jira" || phase === "complete") && jiraTickets.length > 0 && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => setShowMobileTickets(!showMobileTickets)}
+            className="sm:hidden fixed bottom-4 right-4 z-20 flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg shadow-lg font-semibold text-sm"
+          >
+            <span className="text-lg">🎫</span>
+            {jiraTickets.length} Tickets
+            <span className="text-xs">{showMobileTickets ? '▼' : '▲'}</span>
+          </motion.button>
+        )}
+
+        {/* Mobile Tickets Panel - Slide up from bottom */}
+        <AnimatePresence>
+          {showMobileTickets && (phase === "jira" || phase === "complete") && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowMobileTickets(false)}
+                className="sm:hidden fixed inset-0 bg-black/50 z-30"
+              />
+              {/* Panel */}
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t-2 border-border rounded-t-2xl max-h-[70vh] overflow-hidden flex flex-col"
+              >
+                <div className="p-4 border-b border-border flex items-center justify-between">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <span className="text-lg">🎫</span>
+                    JIRA Tickets Created
+                  </h3>
+                  <button
+                    onClick={() => setShowMobileTickets(false)}
+                    className="p-2 hover:bg-muted rounded-lg transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="p-4 space-y-4 overflow-y-auto flex-1">
+                  {jiraTickets.map((ticket, idx) => (
+                    <motion.div
+                      key={ticket.key}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{
+                        opacity: idx <= currentJiraIndex ? 1 : 0.3,
+                        x: 0,
+                      }}
+                      transition={{ delay: 0.1 }}
+                      className={`rounded-lg border overflow-hidden ${
+                        idx <= currentJiraIndex
+                          ? "bg-white border-gray-200 shadow-sm"
+                          : "bg-gray-50 border-gray-100"
+                      }`}
+                    >
+                      {/* Ticket Header */}
+                      <div className="px-3 py-2 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold text-blue-600">
+                          {ticket.key}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] px-2 py-0.5 bg-gray-200 rounded text-gray-600">
+                            ⏱ {ticket.estimatedHours}h
+                          </span>
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                              ticket.priority === "high"
+                                ? "bg-red-100 text-red-700"
+                                : ticket.priority === "medium"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-green-100 text-green-700"
+                            }`}
+                          >
+                            {ticket.priority}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Ticket Content */}
+                      <div className="p-3">
+                        <p className="text-sm font-semibold text-gray-800 leading-snug mb-2">
+                          {ticket.summary}
+                        </p>
+                        
+                        {/* Task Description / Work Breakdown */}
+                        <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-100">
+                          <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-1">
+                            📋 Work Description
+                          </div>
+                          <p className="text-xs text-gray-700 leading-relaxed">
+                            {ticket.description}
+                          </p>
+                        </div>
+                        
+                        {/* Required Skills */}
+                        <div className="mb-3">
+                          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                            🔧 Required Skills
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {ticket.requiredSkills.map((skill, i) => (
+                              <span
+                                key={i}
+                                className="text-[10px] px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded border border-indigo-100"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {/* Assignee */}
+                        <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-[10px] font-bold text-white">
+                            {ticket.assignee
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </div>
+                          <div className="flex-1">
+                            <span className="text-xs font-medium text-gray-700 block">
+                              {ticket.assignee}
+                            </span>
+                            <span className="text-[10px] text-gray-500">
+                              {ticket.assigneeRole}
+                            </span>
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 bg-blue-100 rounded text-blue-600 font-medium">
+                            {ticket.status}
+                          </span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
         {/* JIRA Tickets Panel */}
         <AnimatePresence>
           {(phase === "jira" || phase === "complete") && (
@@ -725,10 +886,9 @@ export default function AllocationSimulation({
               initial={{ width: 0, opacity: 0 }}
               animate={{ width: 400, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              className="border-l border-border bg-card overflow-hidden"
-            >
-              <div className="p-4 border-b border-border">
-                <h3 className="font-semibold flex items-center gap-2">
+              className="hidden sm:block border-l border-border bg-card overflow-hidden">
+              <div className="p-3 sm:p-4 border-b border-border">
+                <h3 className="font-semibold flex items-center gap-2 text-sm sm:text-base">
                   <span className="text-lg">🎫</span>
                   JIRA Tickets Created
                 </h3>
@@ -842,57 +1002,57 @@ export default function AllocationSimulation({
         <motion.div
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="border-t border-border bg-card p-4"
+          className="border-t border-border bg-card p-3 sm:p-4"
         >
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-8">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="grid grid-cols-2 sm:flex items-center gap-4 sm:gap-8 w-full sm:w-auto">
               <div className="text-center">
-                <span className="text-2xl font-bold text-green-600">
+                <span className="text-xl sm:text-2xl font-bold text-green-600">
                   {allocationData.tasks.filter((t) => t.assigned_employee_ids.length > 0).length}
                 </span>
-                <span className="block text-xs text-muted-foreground">
+                <span className="block text-[10px] sm:text-xs text-muted-foreground">
                   Tasks Assigned
                 </span>
               </div>
-              <div className="w-px h-10 bg-border" />
+              <div className="w-px h-10 bg-border hidden sm:block" />
               <div className="text-center">
-                <span className="text-2xl font-bold text-blue-600">
+                <span className="text-xl sm:text-2xl font-bold text-blue-600">
                   {
                     new Set(
                       allocationData.tasks.flatMap((t) => t.assigned_employee_ids)
                     ).size
                   }
                 </span>
-                <span className="block text-xs text-muted-foreground">
+                <span className="block text-[10px] sm:text-xs text-muted-foreground">
                   Team Members
                 </span>
               </div>
-              <div className="w-px h-10 bg-border" />
+              <div className="w-px h-10 bg-border hidden sm:block" />
               <div className="text-center">
-                <span className="text-2xl font-bold text-purple-600">
+                <span className="text-xl sm:text-2xl font-bold text-purple-600">
                   {jiraTickets.length}
                 </span>
-                <span className="block text-xs text-muted-foreground">
+                <span className="block text-[10px] sm:text-xs text-muted-foreground">
                   JIRA Tickets
                 </span>
               </div>
-              <div className="w-px h-10 bg-border" />
+              <div className="w-px h-10 bg-border hidden sm:block" />
               <div className="text-center">
-                <span className="text-2xl font-bold text-orange-600">
+                <span className="text-xl sm:text-2xl font-bold text-orange-600">
                   {allocationData.total_hours}h
                 </span>
-                <span className="block text-xs text-muted-foreground">
+                <span className="block text-[10px] sm:text-xs text-muted-foreground">
                   Total Hours
                 </span>
               </div>
               {jiraSyncResults && (
                 <>
-                  <div className="w-px h-10 bg-border" />
+                  <div className="w-px h-10 bg-border hidden sm:block" />
                   <div className="text-center">
-                    <span className="text-2xl font-bold text-green-600">
+                    <span className="text-xl sm:text-2xl font-bold text-green-600">
                       {jiraSyncResults.created}
                     </span>
-                    <span className="block text-xs text-muted-foreground">
+                    <span className="block text-[10px] sm:text-xs text-muted-foreground">
                       Synced to Jira
                     </span>
                   </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { MemoryRouter } from "react-router-dom"
+import { Menu, X as CloseIcon } from "lucide-react"
 import KnowledgeGraph3D from "@/components/KnowledgeGraph3D"
 import { Dashboard } from "@/components/Dashboard"
 import { RoleManagement } from "@/components/RoleManagement"
@@ -70,6 +71,9 @@ function App() {
     description: string;
     techStack: string[];
   } | null>(null)
+
+  // Mobile menu state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // --- Effects Merged ---
 
@@ -176,49 +180,103 @@ function App() {
     )
   }
 
+
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Role Switcher Header - Preserved from Code 1 */}
+      {/* Role Switcher Header - Mobile Responsive */}
       <div className="sticky top-0 z-40 border-b-2 border-foreground bg-card">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground">View As:</span>
-            <div className="flex gap-1">
-              <button
-                onClick={() => handleRoleSwitch('pm')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-mono uppercase border-2 transition-colors ${userRole === 'pm'
-                  ? 'border-foreground bg-foreground text-background'
-                  : 'border-border hover:border-foreground'
-                  }`}
-              >
-                <Briefcase className="w-4 h-4" />
-                Project Manager
-              </button>
-              <button
-                onClick={() => handleRoleSwitch('hr')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-mono uppercase border-2 transition-colors ${userRole === 'hr'
-                  ? 'border-foreground bg-foreground text-background'
-                  : 'border-border hover:border-foreground'
-                  }`}
-              >
-                <Users className="w-4 h-4" />
-                Human Resources
-              </button>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 sm:py-3">
+          {/* Mobile Header */}
+          <div className="flex items-center justify-between">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 border-2 border-foreground"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <CloseIcon className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+
+            {/* Desktop Role Switcher */}
+            <div className="hidden md:flex items-center gap-2">
+              <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground">View As:</span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => handleRoleSwitch('pm')}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-mono uppercase border-2 transition-colors ${userRole === 'pm'
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border hover:border-foreground'
+                    }`}
+                >
+                  <Briefcase className="w-4 h-4" />
+                  Project Manager
+                </button>
+                <button
+                  onClick={() => handleRoleSwitch('hr')}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-mono uppercase border-2 transition-colors ${userRole === 'hr'
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border hover:border-foreground'
+                    }`}
+                >
+                  <Users className="w-4 h-4" />
+                  Human Resources
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile Title */}
+            <div className="md:hidden text-sm font-mono font-semibold">
+              {userRole === 'pm' ? 'PM' : 'HR'} View
+            </div>
+
+            {/* Health & Version */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {health && (
+                <div className="flex items-center gap-1 sm:gap-2 text-xs font-mono">
+                  <div className={`w-2 h-2 rounded-full ${health.status === 'ok' ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+                  <span className="text-muted-foreground hidden sm:inline">SYS: {health.status.toUpperCase()}</span>
+                </div>
+              )}
+              <div className="text-xs text-muted-foreground font-mono hidden sm:block">
+                Command Center v2.0
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Health Indicator Small */}
-            {health && (
-              <div className="flex items-center gap-2 text-xs font-mono">
-                <div className={`w-2 h-2 rounded-full ${health.status === 'ok' ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
-                <span className="text-muted-foreground">SYS: {health.status.toUpperCase()}</span>
+          {/* Mobile Menu Dropdown */}
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden mt-3 pt-3 border-t border-border"
+            >
+              <div className="space-y-2">
+                <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground block mb-2">Switch Role:</span>
+                <button
+                  onClick={() => { handleRoleSwitch('pm'); setMobileMenuOpen(false); }}
+                  className={`flex items-center gap-2 w-full px-4 py-3 text-sm font-mono uppercase border-2 transition-colors ${userRole === 'pm'
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border hover:border-foreground'
+                    }`}
+                >
+                  <Briefcase className="w-4 h-4" />
+                  Project Manager
+                </button>
+                <button
+                  onClick={() => { handleRoleSwitch('hr'); setMobileMenuOpen(false); }}
+                  className={`flex items-center gap-2 w-full px-4 py-3 text-sm font-mono uppercase border-2 transition-colors ${userRole === 'hr'
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border hover:border-foreground'
+                    }`}
+                >
+                  <Users className="w-4 h-4" />
+                  Human Resources
+                </button>
               </div>
-            )}
-            <div className="text-xs text-muted-foreground font-mono">
-              Command Center v2.0
-            </div>
-          </div>
+            </motion.div>
+          )}
         </div>
       </div>
 

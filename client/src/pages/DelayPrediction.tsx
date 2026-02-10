@@ -343,36 +343,36 @@ const DelayPrediction = ({ onBack, allocationDataProp }: DelayPredictionProps) =
   const currentBudget = originalData.budget * (budgetPercent / 100);
 
   return (
-    <div className="w-full bg-background pb-8">
-      <div className="max-w-7xl mx-auto px-6">
+    <div className="w-full bg-background pb-6 sm:pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 pt-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 pt-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <motion.button 
               onClick={() => onBack ? onBack() : navigate('/')}
               className="p-2 hover:bg-muted rounded-lg transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Dashboard
+              <span className="hidden sm:inline">Dashboard</span>
             </motion.button>
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">Delay Prediction Simulator</h2>
-              <p className="text-base text-muted-foreground mt-1">Interactive "what-if" scenario analysis</p>
+              <h2 className="text-lg sm:text-2xl font-semibold tracking-tight">Delay Prediction</h2>
+              <p className="text-sm sm:text-base text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Interactive "what-if" scenario analysis</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={resetAll}
-              className="flex items-center gap-2 px-4 py-2 border-2 border-border text-sm font-mono uppercase tracking-wider hover:bg-muted transition-colors rounded-lg"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 border-2 border-border text-xs sm:text-sm font-mono uppercase tracking-wider hover:bg-muted transition-colors rounded-lg"
             >
-              <RotateCcw className="w-4 h-4" />
-              Reset
+              <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Reset</span>
             </button>
             <motion.div
               key={prediction?.risk_level}
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              className={`px-4 py-2 rounded-lg ${getRiskBg(prediction?.risk_level || 'low')} text-white font-mono text-sm uppercase tracking-wider`}
+              className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg ${getRiskBg(prediction?.risk_level || 'low')} text-white font-mono text-xs sm:text-sm uppercase tracking-wider`}
             >
               {prediction?.risk_level || 'low'} risk
             </motion.div>
@@ -380,7 +380,7 @@ const DelayPrediction = ({ onBack, allocationDataProp }: DelayPredictionProps) =
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-4 sm:mb-6">
           {[
             {
               label: "Predicted Delay",
@@ -437,15 +437,15 @@ const DelayPrediction = ({ onBack, allocationDataProp }: DelayPredictionProps) =
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * idx }}
-              className={`p-4 border-2 rounded-lg ${stat.highlight ? 'border-foreground' : 'border-border'} ${stat.bgColor}`}
+              className={`p-2 sm:p-4 border-2 rounded-lg ${stat.highlight ? 'border-foreground' : 'border-border'} ${stat.bgColor}`}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                <stat.icon className={`w-3 h-3 sm:w-4 sm:h-4 ${stat.color}`} />
+                <span className="text-[8px] sm:text-[10px] font-mono uppercase tracking-widest text-muted-foreground truncate">
                   {stat.label}
                 </span>
               </div>
-              <div className={`text-2xl font-bold font-mono ${stat.color}`}>
+              <div className={`text-lg sm:text-2xl font-bold font-mono ${stat.color}`}>
                 <CountUpNumber 
                   end={stat.value} 
                   prefix={stat.prefix} 
@@ -456,7 +456,7 @@ const DelayPrediction = ({ onBack, allocationDataProp }: DelayPredictionProps) =
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Left Column - Controls */}
           <div className="space-y-6">
             {/* Budget Slider */}
@@ -464,9 +464,9 @@ const DelayPrediction = ({ onBack, allocationDataProp }: DelayPredictionProps) =
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="p-6 border-2 border-border rounded-lg bg-card"
+              className="p-4 sm:p-6 border-2 border-border rounded-lg bg-card"
             >
-              <h3 className="text-sm font-mono uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+              <h3 className="text-xs sm:text-sm font-mono uppercase tracking-widest text-muted-foreground mb-3 sm:mb-4 flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
                 Budget Adjustment
               </h3>
@@ -498,9 +498,9 @@ const DelayPrediction = ({ onBack, allocationDataProp }: DelayPredictionProps) =
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="p-6 border-2 border-border rounded-lg bg-card"
+              className="p-4 sm:p-6 border-2 border-border rounded-lg bg-card"
             >
-              <h3 className="text-sm font-mono uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+              <h3 className="text-xs sm:text-sm font-mono uppercase tracking-widest text-muted-foreground mb-3 sm:mb-4 flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 Deadline Adjustment
               </h3>
@@ -533,9 +533,9 @@ const DelayPrediction = ({ onBack, allocationDataProp }: DelayPredictionProps) =
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="p-6 border-2 border-border rounded-lg bg-card"
+                className="p-4 sm:p-6 border-2 border-border rounded-lg bg-card"
               >
-                <h3 className="text-sm font-mono uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+                <h3 className="text-xs sm:text-sm font-mono uppercase tracking-widest text-muted-foreground mb-3 sm:mb-4 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" />
                   Risk Factors
                 </h3>
@@ -560,14 +560,14 @@ const DelayPrediction = ({ onBack, allocationDataProp }: DelayPredictionProps) =
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="p-6 border-2 border-foreground bg-foreground text-background rounded-lg"
+              className="p-4 sm:p-6 border-2 border-foreground bg-foreground text-background rounded-lg"
             >
-              <h3 className="text-sm font-mono uppercase tracking-widest mb-4 opacity-70 flex items-center gap-2">
+              <h3 className="text-xs sm:text-sm font-mono uppercase tracking-widest mb-3 sm:mb-4 opacity-70 flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 Active Team ({activeEmployees.length})
               </h3>
-              <p className="text-xs opacity-50 mb-4">Click × to simulate removing an employee</p>
-              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              <p className="text-xs opacity-50 mb-3 sm:mb-4">Click × to simulate removing an employee</p>
+              <div className="space-y-2 max-h-[250px] sm:max-h-[400px] overflow-y-auto">
                 <AnimatePresence>
                   {activeEmployees.map((emp) => (
                     <motion.div
@@ -613,9 +613,9 @@ const DelayPrediction = ({ onBack, allocationDataProp }: DelayPredictionProps) =
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
-              className="p-6 border-2 border-destructive/50 bg-destructive/5 rounded-lg"
+              className="p-4 sm:p-6 border-2 border-destructive/50 bg-destructive/5 rounded-lg"
             >
-              <h3 className="text-sm font-mono uppercase tracking-widest text-destructive mb-4 flex items-center gap-2">
+              <h3 className="text-xs sm:text-sm font-mono uppercase tracking-widest text-destructive mb-3 sm:mb-4 flex items-center gap-2">
                 <X className="w-4 h-4" />
                 Removed ({removedEmployees.length})
               </h3>
@@ -665,20 +665,20 @@ const DelayPrediction = ({ onBack, allocationDataProp }: DelayPredictionProps) =
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
-              className={`p-6 border-2 rounded-lg ${prediction?.risk_level === 'critical' ? 'border-destructive bg-destructive/10' : 
+              className={`p-4 sm:p-6 border-2 rounded-lg ${prediction?.risk_level === 'critical' ? 'border-destructive bg-destructive/10' : 
                 prediction?.risk_level === 'high' ? 'border-orange-500 bg-orange-500/10' :
                 prediction?.risk_level === 'medium' ? 'border-yellow-500 bg-yellow-500/10' :
                 'border-success bg-success/10'}`}
             >
-              <h3 className="text-sm font-mono uppercase tracking-widest text-muted-foreground mb-4">
+              <h3 className="text-xs sm:text-sm font-mono uppercase tracking-widest text-muted-foreground mb-3 sm:mb-4">
                 Prediction Summary
               </h3>
-              <div className="text-center py-6">
+              <div className="text-center py-4 sm:py-6">
                 <motion.div 
                   key={prediction?.delay_days}
                   initial={{ scale: 0.5 }}
                   animate={{ scale: 1 }}
-                  className={`text-6xl font-bold font-mono ${getRiskColor(prediction?.risk_level || 'low')}`}
+                  className={`text-4xl sm:text-6xl font-bold font-mono ${getRiskColor(prediction?.risk_level || 'low')}`}
                 >
                   {prediction?.delay_days || 0}
                 </motion.div>
@@ -715,9 +715,9 @@ const DelayPrediction = ({ onBack, allocationDataProp }: DelayPredictionProps) =
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.9 }}
-                className="p-6 border-2 border-border rounded-lg bg-card"
+                className="p-4 sm:p-6 border-2 border-border rounded-lg bg-card"
               >
-                <h3 className="text-sm font-mono uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+                <h3 className="text-xs sm:text-sm font-mono uppercase tracking-widest text-muted-foreground mb-3 sm:mb-4 flex items-center gap-2">
                   <Zap className="w-4 h-4" />
                   AI Recommendations
                 </h3>
